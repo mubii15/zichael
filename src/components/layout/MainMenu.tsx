@@ -60,7 +60,7 @@ const MainMenu: React.FC<MainMenuProps> = ({ isOpen, onClose }) => {
   return (
     <div 
       ref={menuRef}
-      className={`fixed top-0 right-0 w-full md:w-1/2 h-full bg-white z-40 transform translate-x-full transition-all duration-500 shadow-xl flex flex-col justify-center`}
+      className={`fixed top-0 right-0 w-full md:w-1/2 h-full bg-white z-50 transform translate-x-full transition-all duration-500 shadow-xl flex flex-col justify-center`}
     >
       <div className="container mx-auto px-12 py-8">
         <nav className="flex flex-col items-start">

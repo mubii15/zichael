@@ -43,7 +43,7 @@ const Header = () => {
         </Link>
         
         <button 
-          className="text-sm flex items-center focus:outline-none"
+          className="text-sm flex items-center focus:outline-none z-[60]"
           onClick={toggleMenu}
           aria-label={menuOpen ? "Close menu" : "Open menu"}
         >
