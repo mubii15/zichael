@@ -14,7 +14,7 @@ const MainMenu: React.FC<MainMenuProps> = ({ isOpen, onClose }) => {
 
   useEffect(() => {
     const menuElement = menuRef.current;
-    const links = linkRefs.current;
+    const links = linkRefs.current.filter(Boolean);
 
     if (menuElement) {
       const tl = gsap.timeline({ paused: true });
@@ -25,17 +25,19 @@ const MainMenu: React.FC<MainMenuProps> = ({ isOpen, onClose }) => {
         ease: "power3.out",
       });
       
-      tl.fromTo(links, 
-        { y: 30, opacity: 0 },
-        { 
-          y: 0, 
-          opacity: 1, 
-          stagger: 0.1,
-          duration: 0.6,
-          ease: "power3.out"
-        }, 
-        "-=0.2"
-      );
+      if (links.length > 0) {
+        tl.fromTo(links, 
+          { y: 30, opacity: 0 },
+          { 
+            y: 0, 
+            opacity: 1, 
+            stagger: 0.1,
+            duration: 0.6,
+            ease: "power3.out"
+          }, 
+          "-=0.2"
+        );
+      }
 
       if (isOpen) {
         tl.play();
@@ -71,11 +73,11 @@ const MainMenu: React.FC<MainMenuProps> = ({ isOpen, onClose }) => {
               >
                 <Link 
                   to={item === 'Home' ? '/' : `/${item.toLowerCase()}`} 
-                  className="menu-item"
+                  className="text-2xl font-medium tracking-wide hover:text-gray-600 transition-colors duration-300 flex items-center group"
                   onClick={onClose}
                 >
                   {item}
-                  <span className="menu-item-line"></span>
+                  <span className="h-[1px] w-0 bg-black ml-2 transition-all duration-300 group-hover:w-12"></span>
                 </Link>
               </li>
             ))}
@@ -86,21 +88,21 @@ const MainMenu: React.FC<MainMenuProps> = ({ isOpen, onClose }) => {
           <div className="flex flex-col space-y-4">
             <Link 
               to="/account" 
-              className="text-sm uppercase tracking-wider"
+              className="text-sm uppercase tracking-wider hover:text-gray-600 transition-colors duration-300"
               onClick={onClose}
             >
               Account
             </Link>
             <Link 
               to="/account/orders" 
-              className="text-sm uppercase tracking-wider"
+              className="text-sm uppercase tracking-wider hover:text-gray-600 transition-colors duration-300"
               onClick={onClose}
             >
               Orders
             </Link>
             <Link 
               to="/cart" 
-              className="text-sm uppercase tracking-wider"
+              className="text-sm uppercase tracking-wider hover:text-gray-600 transition-colors duration-300"
               onClick={onClose}
             >
               Cart
