@@ -8,7 +8,7 @@ const carouselData = [
   {
     id: 'men',
     title: 'Men',
-    subtitle: 'Summer Collection 2025',
+    subtitle: 'Enjoy Our New Collection',
     description: 'Effortless elegance for the modern man',
     ctaText: 'Shop Men',
     image: 'https://images.unsplash.com/photo-1552374196-1ab2a1c593e8?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1287&q=80',
@@ -18,7 +18,7 @@ const carouselData = [
   {
     id: 'women',
     title: 'Women',
-    subtitle: 'Summer Collection 2025',
+    subtitle: 'Enjoy Our New Collection',
     description: 'Bold statements for the contemporary woman',
     ctaText: 'Shop Women',
     image: 'https://images.unsplash.com/photo-1529139574466-a303027c1d8b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1287&q=80',
@@ -28,7 +28,7 @@ const carouselData = [
   {
     id: 'kids',
     title: 'Kids',
-    subtitle: 'Summer Collection 2025',
+    subtitle: 'Enjoy Our New Collection',
     description: 'Playful styles for the little ones',
     ctaText: 'Shop Kids',
     image: 'https://images.unsplash.com/photo-1491013516836-7db643ee125a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1025&q=80',
