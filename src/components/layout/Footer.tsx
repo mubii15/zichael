@@ -8,9 +8,9 @@ const Footer = () => {
       <div className="container mx-auto px-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
           <div>
-            <h3 className="text-xl font-serif mb-6">VOGUE FLOW</h3>
+            <h3 className="text-xl font-serif mb-6">Zichael</h3>
             <p className="text-sm text-gray-300 mb-4">
-              Premium fashion for the modern individual. Discover curated collections that blend timeless elegance with contemporary style.
+            House of Zichael is a Top notch bespoke fitting brand, which has a practical experience in posh customary clothing, for fashion enthusiasts all over the world.
             </p>
           </div>
 
@@ -47,7 +47,7 @@ const Footer = () => {
 
         <div className="border-t border-gray-800 mt-12 pt-8 text-center">
           <p className="text-sm text-gray-400">
-            © {new Date().getFullYear()} Vogue Flow. All rights reserved.
+            © {new Date().getFullYear()} Zichael. All rights reserved.
           </p>
         </div>
       </div>
