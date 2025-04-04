@@ -17,30 +17,30 @@ const Footer = () => {
           <div>
             <h4 className="text-sm uppercase mb-6">Shop</h4>
             <ul className="space-y-3">
-              <li><Link to="/men" className="text-sm text-gray-300 hover:text-white">Men</Link></li>
-              <li><Link to="/women" className="text-sm text-gray-300 hover:text-white">Women</Link></li>
-              <li><Link to="/kids" className="text-sm text-gray-300 hover:text-white">Kids</Link></li>
-              <li><Link to="/collections" className="text-sm text-gray-300 hover:text-white">Collections</Link></li>
+              <li><Link to="/" className="text-sm text-gray-300 hover:text-white">Men</Link></li>
+              <li><Link to="/" className="text-sm text-gray-300 hover:text-white">Women</Link></li>
+              <li><Link to="/" className="text-sm text-gray-300 hover:text-white">Kids</Link></li>
+              <li><Link to="/" className="text-sm text-gray-300 hover:text-white">Collections</Link></li>
             </ul>
           </div>
 
           <div>
             <h4 className="text-sm uppercase mb-6">Help</h4>
             <ul className="space-y-3">
-              <li><Link to="/contact" className="text-sm text-gray-300 hover:text-white">Contact</Link></li>
-              <li><Link to="/shipping" className="text-sm text-gray-300 hover:text-white">Shipping</Link></li>
-              <li><Link to="/returns" className="text-sm text-gray-300 hover:text-white">Returns</Link></li>
-              <li><Link to="/size-guide" className="text-sm text-gray-300 hover:text-white">Size Guide</Link></li>
+              <li><Link to="/" className="text-sm text-gray-300 hover:text-white">Contact</Link></li>
+              <li><Link to="/" className="text-sm text-gray-300 hover:text-white">Shipping</Link></li>
+              <li><Link to="/" className="text-sm text-gray-300 hover:text-white">Returns</Link></li>
+              <li><Link to="/" className="text-sm text-gray-300 hover:text-white">Size Guide</Link></li>
             </ul>
           </div>
 
           <div>
             <h4 className="text-sm uppercase mb-6">Connect</h4>
             <ul className="space-y-3">
-              <li><Link to="/about" className="text-sm text-gray-300 hover:text-white">Our Story</Link></li>
-              <li><a href="#" className="text-sm text-gray-300 hover:text-white">Instagram</a></li>
-              <li><a href="#" className="text-sm text-gray-300 hover:text-white">Pinterest</a></li>
-              <li><a href="#" className="text-sm text-gray-300 hover:text-white">Twitter</a></li>
+              <li><Link to="/" className="text-sm text-gray-300 hover:text-white">Our Story</Link></li>
+              <li><a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="text-sm text-gray-300 hover:text-white">Instagram</a></li>
+              <li><a href="https://pinterest.com" target="_blank" rel="noopener noreferrer" className="text-sm text-gray-300 hover:text-white">Pinterest</a></li>
+              <li><a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="text-sm text-gray-300 hover:text-white">Twitter</a></li>
             </ul>
           </div>
         </div>
