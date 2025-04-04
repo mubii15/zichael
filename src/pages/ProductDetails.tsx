@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import MainLayout from '../layouts/MainLayout';
@@ -6,6 +5,7 @@ import { useCart } from '../context/CartContext';
 import { ArrowLeft, Minus, Plus, ShoppingBag } from 'lucide-react';
 import { toast } from 'sonner';
 import gsap from 'gsap';
+import SimilarProducts from '../components/products/SimilarProducts';
 
 // Sample product data - in a real app, this would come from an API
 const productsData = [
@@ -219,6 +219,8 @@ const ProductDetails = () => {
             </div>
           </div>
         </div>
+        
+        <SimilarProducts currentProductId={product.id} category={product.category} />
       </div>
     </MainLayout>
   );
