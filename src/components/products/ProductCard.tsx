@@ -2,6 +2,8 @@
 import React, { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import gsap from 'gsap';
+import { useCart } from '../../context/CartContext';
+import { toast } from 'sonner';
 
 interface ProductCardProps {
   id: string;
@@ -22,6 +24,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
 }) => {
   const [isHovered, setIsHovered] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
+  const { addItem } = useCart();
   
   const handleMouseEnter = () => {
     setIsHovered(true);
@@ -47,6 +50,14 @@ const ProductCard: React.FC<ProductCardProps> = ({
     }
   };
 
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    addItem({ id, name, price, image, category });
+    toast.success(`${name} added to cart`);
+  };
+
   return (
     <div 
       ref={cardRef}
@@ -64,6 +75,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-300"></div>
           <button 
             className="absolute bottom-0 left-0 right-0 bg-black text-white py-3 text-sm uppercase tracking-wider translate-y-full group-hover:translate-y-0 transition-transform duration-300"
+            onClick={handleAddToCart}
           >
             Add to Cart
           </button>

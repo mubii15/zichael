@@ -3,10 +3,12 @@ import React, { useState, useEffect } from 'react';
 import { Menu, X, ShoppingBag, User } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import MainMenu from './MainMenu';
+import { useCart } from '../../context/CartContext';
 
 const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const { totalItems } = useCart();
 
   const toggleMenu = () => {
     setMenuOpen(!menuOpen);
@@ -39,7 +41,11 @@ const Header = () => {
         
         <Link to="/cart" className="text-sm relative hover:opacity-70 transition-opacity duration-300">
           <ShoppingBag size={20} />
-          <span className="absolute -top-2 -right-2 bg-black text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">0</span>
+          {totalItems > 0 && (
+            <span className="absolute -top-2 -right-2 bg-black text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+              {totalItems}
+            </span>
+          )}
         </Link>
         
         <button 
