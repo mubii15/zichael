@@ -3,6 +3,7 @@ import React, { useEffect, useRef } from 'react';
 import ProductCard from '../products/ProductCard';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { Link } from 'react-router-dom';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -97,13 +98,20 @@ const FeaturedProducts = () => {
         <div ref={productsRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {featuredProducts.map((product) => (
             <div key={product.id} className="product-item">
-              <ProductCard {...product} />
+              <ProductCard 
+                id={product.id}
+                name={product.name}
+                price={product.price}
+                image={product.image}
+                hoverImage={product.hoverImage}
+                category={product.category}
+              />
             </div>
           ))}
         </div>
         
         <div className="text-center mt-12">
-          <button className="btn-primary">View All Products</button>
+          <Link to="/products" className="btn-primary">View All Products</Link>
         </div>
       </div>
     </section>
