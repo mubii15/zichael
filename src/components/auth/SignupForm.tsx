@@ -40,7 +40,7 @@ const SignupForm = () => {
     <div className="max-w-md w-full mx-auto">
       <div className="mb-8 text-center">
         <h1 className="text-3xl font-serif mb-2">Create an Account</h1>
-        <p className="text-muted-foreground">Sign up to get started with Vogue Flow</p>
+        <p className="text-muted-foreground">Sign up to get started with Zichael</p>
       </div>
       
       <form onSubmit={handleSubmit} className="space-y-6">
