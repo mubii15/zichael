@@ -19,6 +19,10 @@ import AccountPage from "./pages/AccountPage";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminProducts from "./pages/admin/AdminProducts";
+import AdminOrders from "./pages/admin/AdminOrders";
+import CheckoutPage from "./pages/checkout/CheckoutPage";
+import ConfirmOrderPage from "./pages/checkout/ConfirmOrderPage";
+import OrderSuccessPage from "./pages/checkout/OrderSuccessPage";
 
 const queryClient = new QueryClient();
 
@@ -41,10 +45,16 @@ const App = () => (
             <Route path="/shipping" element={<ShippingPage />} />
             <Route path="/account" element={<AccountPage />} />
             
+            {/* Checkout Flow */}
+            <Route path="/checkout" element={<CheckoutPage />} />
+            <Route path="/checkout/confirm" element={<ConfirmOrderPage />} />
+            <Route path="/checkout/success" element={<OrderSuccessPage />} />
+            
             {/* Admin Routes */}
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/admin/users" element={<AdminUsers />} />
             <Route path="/admin/products" element={<AdminProducts />} />
+            <Route path="/admin/orders" element={<AdminOrders />} />
             
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
