@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { XCircle, Upload, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -36,6 +35,7 @@ interface ProductModalProps {
   onClose: () => void;
   onSave: (productData: ProductData) => void;
   product?: ProductData;
+  saving?: boolean;
 }
 
 const DEFAULT_PRODUCT: ProductData = {
@@ -50,9 +50,25 @@ const DEFAULT_PRODUCT: ProductData = {
 
 const AVAILABLE_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 
-const ProductModal = ({ open, onClose, onSave, product }: ProductModalProps) => {
+const ProductModal = ({ open, onClose, onSave, product, saving }: ProductModalProps) => {
   const [formData, setFormData] = useState<ProductData>(DEFAULT_PRODUCT);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const imagesRef = useRef<ProductImage[]>([]);
+
+  useEffect(() => {
+    imagesRef.current = formData.images;
+  }, [formData.images]);
+
+  // Clean up blob URLs when component unmounts or modal closes
+  useEffect(() => {
+    return () => {
+      imagesRef.current.forEach(image => {
+        if (image.url.startsWith('blob:') && image.file) {
+          URL.revokeObjectURL(image.url);
+        }
+      });
+    };
+  }, []);
 
   useEffect(() => {
     if (product) {
@@ -60,13 +76,14 @@ const ProductModal = ({ open, onClose, onSave, product }: ProductModalProps) => 
     } else {
       setFormData(DEFAULT_PRODUCT);
     }
+    setErrors({});
   }, [product, open]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: name === 'price' ? parseFloat(value) || 0 : value
+      [name]: name === 'price' || name === 'inventory' ? parseFloat(value) || 0 : value
     }));
   };
 
@@ -111,6 +128,13 @@ const ProductModal = ({ open, onClose, onSave, product }: ProductModalProps) => 
   };
 
   const removeImage = (index: number) => {
+    const imageToRemove = formData.images[index];
+    
+    // Revoke blob URL if it's a blob
+    if (imageToRemove.url.startsWith('blob:') && imageToRemove.file) {
+      URL.revokeObjectURL(imageToRemove.url);
+    }
+    
     setFormData(prev => ({
       ...prev,
       images: prev.images.filter((_, i) => i !== index)
@@ -126,7 +150,7 @@ const ProductModal = ({ open, onClose, onSave, product }: ProductModalProps) => 
     if (!formData.category) newErrors.category = 'Category is required';
     if (!formData.type) newErrors.type = 'Product type is required';
     if (formData.images.length === 0) newErrors.images = 'At least one image is required';
-    if (formData.sizes.length === 0) newErrors.sizes = 'At least one size option is required';
+    if (formData.sizes.length === 0 && formData.type === 'ready-to-wear') newErrors.sizes = 'At least one size option is required';
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -138,9 +162,19 @@ const ProductModal = ({ open, onClose, onSave, product }: ProductModalProps) => 
     }
   };
 
+  const handleClose = () => {
+    // Clean up any blob URLs before closing
+    formData.images.forEach(image => {
+      if (image.url.startsWith('blob:') && image.file) {
+        URL.revokeObjectURL(image.url);
+      }
+    });
+    onClose();
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px]">
+    <Dialog open={open} onOpenChange={handleClose}>
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl">
             {product?.id ? 'Edit Product' : 'Add New Product'}
@@ -170,12 +204,13 @@ const ProductModal = ({ open, onClose, onSave, product }: ProductModalProps) => 
               onChange={handleChange}
               placeholder="Enter product description"
               className={errors.description ? 'border-red-500' : ''}
+              rows={4}
             />
             {errors.description && <p className="text-red-500 text-sm">{errors.description}</p>}
           </div>
           
           <div className="grid gap-2">
-            <Label htmlFor="price">Price ($)</Label>
+            <Label htmlFor="price">Price (₦)</Label>
             <Input
               id="price"
               name="price"
@@ -242,26 +277,28 @@ const ProductModal = ({ open, onClose, onSave, product }: ProductModalProps) => 
             </div>
           )}
           
-          <div className="grid gap-2">
-            <Label>Available Sizes</Label>
-            <div className="flex flex-wrap gap-2">
-              {AVAILABLE_SIZES.map((size) => (
-                <button
-                  key={size}
-                  type="button"
-                  onClick={() => handleSizeToggle(size)}
-                  className={`px-3 py-1 border ${
-                    formData.sizes.includes(size)
-                      ? 'bg-black text-white'
-                      : 'bg-white text-black'
-                  } transition-colors`}
-                >
-                  {size}
-                </button>
-              ))}
+          {formData.type === 'ready-to-wear' && (
+            <div className="grid gap-2">
+              <Label>Available Sizes</Label>
+              <div className="flex flex-wrap gap-2">
+                {AVAILABLE_SIZES.map((size) => (
+                  <button
+                    key={size}
+                    type="button"
+                    onClick={() => handleSizeToggle(size)}
+                    className={`px-3 py-1 border rounded ${
+                      formData.sizes.includes(size)
+                        ? 'bg-black text-white border-black'
+                        : 'bg-white text-black border-gray-300'
+                    } transition-colors`}
+                  >
+                    {size}
+                  </button>
+                ))}
+              </div>
+              {errors.sizes && <p className="text-red-500 text-sm">{errors.sizes}</p>}
             </div>
-            {errors.sizes && <p className="text-red-500 text-sm">{errors.sizes}</p>}
-          </div>
+          )}
           
           <div className="grid gap-2">
             <Label>Product Images</Label>
@@ -282,7 +319,7 @@ const ProductModal = ({ open, onClose, onSave, product }: ProductModalProps) => 
                 <Upload className="h-10 w-10 text-gray-400" />
                 <span className="mt-2 text-sm text-gray-500">
                   {formData.images.length === 0 
-                    ? 'Upload images (min 1, max 5)' 
+                    ? 'Upload Image' 
                     : `${formData.images.length}/5 images uploaded`}
                 </span>
               </label>
@@ -297,6 +334,11 @@ const ProductModal = ({ open, onClose, onSave, product }: ProductModalProps) => 
                       src={image.url}
                       alt={`Product preview ${index + 1}`}
                       className="w-full h-full object-cover"
+                      onError={(e) => {
+                        // Fallback if image fails to load
+                        const target = e.target as HTMLImageElement;
+                        target.src = 'https://via.placeholder.com/80x80?text=Image+Error';
+                      }}
                     />
                     <button
                       type="button"
@@ -312,12 +354,17 @@ const ProductModal = ({ open, onClose, onSave, product }: ProductModalProps) => 
           </div>
         </div>
         
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button onClick={handleSubmit}>
-            {product?.id ? 'Update Product' : 'Add Product'}
+      <DialogFooter>
+          <Button variant="outline" onClick={handleClose} disabled={saving}>
+            Cancel
+          </Button>
+          <Button onClick={handleSubmit} disabled={saving}>
+            {saving 
+              ? (product?.id ? 'Updating...' : 'Saving...') 
+              : (product?.id ? 'Update Product' : 'Add Product')}
           </Button>
         </DialogFooter>
+
       </DialogContent>
     </Dialog>
   );
