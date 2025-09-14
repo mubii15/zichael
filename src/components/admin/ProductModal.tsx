@@ -337,7 +337,7 @@ const ProductModal = ({ open, onClose, onSave, product, saving }: ProductModalPr
                       onError={(e) => {
                         // Fallback if image fails to load
                         const target = e.target as HTMLImageElement;
-                        target.src = 'https://via.placeholder.com/80x80?text=Image+Error';
+                        target.src = 'https://placehold.co/600x400';
                       }}
                     />
                     <button

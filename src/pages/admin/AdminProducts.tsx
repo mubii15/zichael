@@ -18,6 +18,9 @@ import imageCompression from "browser-image-compression";
 
 const API_URL = 'https://zichael.com/api/products.php';
 
+// Simple placeholder image as data URL to avoid external requests
+const placeholderImage = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCA4MCA4MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjRjNGNEY2Ii8+Cjx0ZXh0IHg9IjQwIiB5PSI0MCIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjEyIiBmaWxsPSIjNjE2MTYxIj5JbWFnZSBFcnJvcjwvdGV4dD4KPC9zdmc+';
+
 const AdminProducts = () => {
   const [products, setProducts] = useState<ProductData[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -31,10 +34,20 @@ const AdminProducts = () => {
   const [productToDelete, setProductToDelete] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
-
   useEffect(() => {
     fetchProducts();
   }, []);
+
+  // Function to safely get image URL
+  const getImageUrl = (url: string) => {
+    if (!url) return placeholderImage;
+    
+    // If it's already a full URL, use it as-is
+    if (url.startsWith('http')) return url;
+    
+    // If it's a relative path, prepend the domain
+    return `https://zichael.com${url}`;
+  };
 
   // Fetch list
   const fetchProducts = async () => {
@@ -77,7 +90,6 @@ const AdminProducts = () => {
       toast({ title: "Error", description: String(msg), variant: "destructive" });
     } finally {
       setLoading(false);
-            console.log(products);
     }
   };
 
@@ -102,10 +114,12 @@ const AdminProducts = () => {
     setCurrentProduct(undefined);
   };
 
-  // Save product (create or update) - Single image version
+  // Save product (create or update) - Multiple images version
+  // Save product (create or update) - Multiple images version
+// Save product (create or update) - Multiple images version
 const handleSaveProduct = async (productData: ProductData) => {
   try {
-    setSaving(true); // start loading
+    setSaving(true);
 
     const formData = new FormData();
     formData.append('name', productData.name);
@@ -117,34 +131,46 @@ const handleSaveProduct = async (productData: ProductData) => {
     formData.append('sizes', JSON.stringify(productData.sizes || []));
     formData.append('colors', JSON.stringify(productData.colors || []));
 
-    // Handle single image
-    let imageUrl = '';
-    if (productData.images && productData.images.length > 0) {
-      const image = productData.images[0];
-      if (image.url.startsWith("blob:")) {
+    // Handle multiple images
+    const existingImages = productData.images
+      .filter(img => !img.url.startsWith("blob:"))
+      .map(img => img.url);
+    
+    formData.append('existing_images', JSON.stringify(existingImages));
+
+    // Add new images - process them sequentially
+    const newImages = productData.images.filter(img => img.url.startsWith("blob:"));
+    
+    for (let i = 0; i < newImages.length; i++) {
+      const image = newImages[i];
+      
+      try {
+        // Convert blob URL to file
         const response = await fetch(image.url);
         const blob = await response.blob();
+        
+        // Create a file from the blob
+        const file = new File([blob], `product-image-${Date.now()}-${i}`, {
+          type: blob.type,
+          lastModified: Date.now()
+        });
 
-        const compressedFile = await imageCompression(
-          new File([blob], `product-${Date.now()}.jpg`, { type: blob.type }),
-          {
-            maxSizeMB: 1,
-            maxWidthOrHeight: 1200,
-            useWebWorker: true,
-          }
-        );
-
-        formData.append('image', compressedFile);
-      } else {
-        imageUrl = image.url;
+        formData.append('images[]', file);
+      } catch (error) {
+        console.error("Failed to process image, skipping:", error);
+        // Continue with other images even if one fails
+        continue;
       }
     }
-    formData.append('image_url', imageUrl);
 
     if (productData.id) formData.append('id', productData.id);
 
     const action = productData.id ? 'update' : 'create';
-    const res = await axios.post(`${API_URL}?action=${action}`, formData);
+    const res = await axios.post(`${API_URL}?action=${action}`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
 
     if (res.data?.success) {
       toast({
@@ -168,7 +194,7 @@ const handleSaveProduct = async (productData: ProductData) => {
       variant: "destructive" 
     });
   } finally {
-    setSaving(false); // stop loading
+    setSaving(false);
   }
 };
 
@@ -256,6 +282,7 @@ const handleSaveProduct = async (productData: ProductData) => {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Price</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Inventory</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Images</th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
                   </tr>
                 </thead>
@@ -265,12 +292,12 @@ const handleSaveProduct = async (productData: ProductData) => {
                       <td className="px-6 py-4 flex items-center">
                         {product.images && product.images.length > 0 && product.images[0].url && (
                           <img 
-                            src={`https://zichael.com${product.images[0].url}`} 
+                            src={getImageUrl(product.images[0].url)} 
                             alt={product.name} 
                             className="w-10 h-10 mr-3 rounded object-cover"
                             onError={(e) => {
                               const target = e.target as HTMLImageElement;
-                              target.src = 'https://placehold.co/600x400';
+                              target.src = placeholderImage;
                             }}
                           />
                         )}
@@ -280,6 +307,27 @@ const handleSaveProduct = async (productData: ProductData) => {
                       <td className="px-6 py-4 capitalize">{product.type}</td>
                       <td className="px-6 py-4">₦{Number(product.price).toFixed(2)}</td>
                       <td className="px-6 py-4">{product.type === "bespoke" ? "N/A" : product.inventory}</td>
+                      <td className="px-6 py-4">
+                        <div className="flex -space-x-2">
+                          {product.images.slice(0, 3).map((img, index) => (
+                            <img 
+                              key={index}
+                              src={getImageUrl(img.url)} 
+                              alt={`${product.name} ${index + 1}`}
+                              className="w-8 h-8 rounded-full border-2 border-white object-cover"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.src = placeholderImage;
+                              }}
+                            />
+                          ))}
+                          {product.images.length > 3 && (
+                            <div className="w-8 h-8 rounded-full bg-gray-200 border-2 border-white flex items-center justify-center text-xs font-medium">
+                              +{product.images.length - 3}
+                            </div>
+                          )}
+                        </div>
+                      </td>
                       <td className="px-6 py-4 text-right space-x-2">
                         <Button variant="outline" size="sm" onClick={() => handleOpenModal(product)}>
                           <Edit size={16} className="mr-1" /> Edit
@@ -298,7 +346,14 @@ const handleSaveProduct = async (productData: ProductData) => {
         </div>
       </div>
 
-      <ProductModal open={modalOpen} onClose={handleCloseModal} onSave={handleSaveProduct} product={currentProduct} saving={saving}/>
+      <ProductModal 
+        open={modalOpen} 
+        onClose={handleCloseModal} 
+        onSave={handleSaveProduct} 
+        product={currentProduct} 
+        saving={saving}
+        maxImages={5} // Pass the max images limit to the modal
+      />
 
       <Dialog open={deleteModalOpen} onOpenChange={setDeleteModalOpen}>
         <DialogContent>
