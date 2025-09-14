@@ -27,7 +27,6 @@ export interface ProductData {
   type: string;
   images: ProductImage[];
   sizes: string[];
-  colors?: string[];
   inventory?: number;
 }
 
@@ -37,7 +36,6 @@ interface ProductModalProps {
   onSave: (productData: ProductData) => void;
   product?: ProductData;
   saving?: boolean;
-  maxImages?: number;
 }
 
 const DEFAULT_PRODUCT: ProductData = {
