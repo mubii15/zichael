@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import MainLayout from '../layouts/MainLayout';
 import { useCart } from '../context/CartContext';
-import { ArrowLeft, Minus, Plus, ShoppingBag } from 'lucide-react';
+import { ArrowLeft, Minus, Plus, ShoppingBag, Share2, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 import gsap from 'gsap';
 import SimilarProducts from '../components/products/SimilarProducts';
@@ -13,8 +13,13 @@ const productsData = [
     id: 'product-1',
     name: 'Oversized Cotton Shirt',
     price: 89.99,
-    image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1480&q=80',
-    hoverImage: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1288&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1480&q=80',
+      'https://images.unsplash.com/photo-1509631179647-0177331693ae?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1288&q=80',
+      'https://images.unsplash.com/photo-1583743814966-8936f37f4678?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1287&q=80',
+      'https://images.unsplash.com/photo-1564257577142-5ac4b27b5b5c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1288&q=80',
+      'https://images.unsplash.com/photo-1622445275463-afa2ab738c34?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1287&q=80'
+    ],
     category: 'Men',
     description: 'An oversized cotton shirt with a relaxed fit, perfect for casual occasions. Made from 100% organic cotton for breathability and comfort.',
     sizes: ['XS', 'S', 'M', 'L', 'XL'],
@@ -24,8 +29,13 @@ const productsData = [
     id: 'product-2',
     name: 'Wool Blend Blazer',
     price: 249.99,
-    image: 'https://images.unsplash.com/photo-1507680434567-5739c80be1ac?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1480&q=80',
-    hoverImage: 'https://images.unsplash.com/photo-1541346160430-93fcee38d521?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1480&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1507680434567-5739c80be1ac?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1480&q=80',
+      'https://images.unsplash.com/photo-1541346160430-93fcee38d521?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1480&q=80',
+      'https://images.unsplash.com/photo-1594938298603-c8148c4dae35?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1480&q=80',
+      'https://images.unsplash.com/photo-1617127365659-c47fa864d8bc?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1287&q=80',
+      'https://images.unsplash.com/photo-1584464491033-06628f3a6b7b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1286&q=80'
+    ],
     category: 'Men',
     description: 'A sophisticated wool blend blazer that offers warmth and style. Features a tailored fit with a two-button closure and notched lapels.',
     sizes: ['S', 'M', 'L', 'XL'],
@@ -35,8 +45,13 @@ const productsData = [
     id: 'product-3',
     name: 'Relaxed Linen Dress',
     price: 129.99,
-    image: 'https://images.unsplash.com/photo-1485968579580-b6d095142e6e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1286&q=80',
-    hoverImage: 'https://images.unsplash.com/photo-1496747611176-843222e1e57c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1473&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1485968579580-b6d095142e6e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1286&q=80',
+      'https://images.unsplash.com/photo-1496747611176-843222e1e57c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1473&q=80',
+      'https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1288&q=80',
+      'https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1287&q=80',
+      'https://images.unsplash.com/photo-1612336307429-8a898d10e223?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1287&q=80'
+    ],
     category: 'Women',
     description: 'A relaxed linen dress designed for comfort and style. Features a loose fit with a belted waist and side pockets.',
     sizes: ['XS', 'S', 'M', 'L'],
@@ -46,8 +61,13 @@ const productsData = [
     id: 'product-4',
     name: 'Cotton Blend Midi Skirt',
     price: 79.99,
-    image: 'https://images.unsplash.com/photo-1583846717393-dc2412c95ed7?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1329&q=80',
-    hoverImage: 'https://images.unsplash.com/photo-1603189041023-d9a2dbc1f2ac?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1374&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1583846717393-dc2412c95ed7?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1329&q=80',
+      'https://images.unsplash.com/photo-1603189041023-d9a2dbc1f2ac?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1374&q=80',
+      'https://images.unsplash.com/photo-1551698618-1dfe5d97d256?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1287&q=80',
+      'https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1272&q=80',
+      'https://images.unsplash.com/photo-1600950207944-0d63e8edbc3f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1287&q=80'
+    ],
     category: 'Women',
     description: 'A versatile cotton blend midi skirt with an elastic waistband and flowy design. Perfect for both casual and semi-formal occasions.',
     sizes: ['XS', 'S', 'M', 'L', 'XL'],
@@ -63,6 +83,7 @@ const ProductDetails = () => {
   const [quantity, setQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState('');
   const [selectedColor, setSelectedColor] = useState('');
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   
   const productImageRef = useRef<HTMLDivElement>(null);
   const productDetailsRef = useRef<HTMLDivElement>(null);
@@ -105,8 +126,33 @@ const ProductDetails = () => {
   const handleAddToCart = () => {
     if (!product) return;
     
-    addItem(product, quantity);
+    addItem({ ...product, image: product.images[0] }, quantity);
     toast.success(`${product.name} added to cart`);
+  };
+
+  const handleShare = async () => {
+    const url = window.location.href;
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: product?.name,
+          text: `Check out ${product?.name}`,
+          url: url,
+        });
+      } catch (err) {
+        console.log('Error sharing:', err);
+      }
+    } else {
+      // Fallback: copy to clipboard
+      try {
+        await navigator.clipboard.writeText(url);
+        toast.success('Link copied to clipboard!');
+      } catch (err) {
+        console.log('Error copying to clipboard:', err);
+        toast.error('Unable to share');
+      }
+    }
   };
 
   if (!product) {
@@ -126,25 +172,67 @@ const ProductDetails = () => {
   return (
     <MainLayout>
       <div className="container mx-auto px-6 pt-32 pb-16">
-        <Link to="/" className="inline-flex items-center text-sm hover:underline mb-8">
-          <ArrowLeft size={16} className="mr-2" />
-          Back to Products
-        </Link>
+        {/* Breadcrumbs */}
+        <nav className="flex items-center space-x-2 text-sm mb-8">
+          <Link to="/" className="hover:underline">Home</Link>
+          <ChevronRight size={16} className="text-gray-400" />
+          <Link to="/products" className="hover:underline">Products</Link>
+          <ChevronRight size={16} className="text-gray-400" />
+          <span className="text-gray-600">{product.name}</span>
+        </nav>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-          <div ref={productImageRef} className="aspect-[3/4] overflow-hidden bg-gray-50">
-            <img 
-              src={product.image} 
-              alt={product.name} 
-              className="w-full h-full object-cover object-center"
-            />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+          {/* Product Images */}
+          <div ref={productImageRef} className="space-y-4">
+            {/* Main Image */}
+            <div className="aspect-[4/5] overflow-hidden bg-gray-50 rounded-lg">
+              <img 
+                src={product.images[selectedImageIndex]} 
+                alt={product.name} 
+                className="w-full h-full object-cover object-center"
+              />
+            </div>
+            
+            {/* Thumbnail Images */}
+            <div className="grid grid-cols-5 gap-3">
+              {product.images.map((image, index) => (
+                <button
+                  key={index}
+                  className={`aspect-square overflow-hidden rounded-md border-2 transition-colors ${
+                    selectedImageIndex === index 
+                      ? 'border-black' 
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                  onClick={() => setSelectedImageIndex(index)}
+                >
+                  <img 
+                    src={image} 
+                    alt={`${product.name} ${index + 1}`}
+                    className="w-full h-full object-cover object-center"
+                  />
+                </button>
+              ))}
+            </div>
           </div>
 
+          {/* Product Details */}
           <div ref={productDetailsRef} className="flex flex-col">
             <div className="mb-6">
-              <p className="text-sm text-gray-500 mb-2">{product.category}</p>
-              <h1 className="text-3xl font-medium mb-3">{product.name}</h1>
-              <p className="text-xl">${product.price.toFixed(2)}</p>
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-sm text-gray-500">{product.category}</p>
+                <button
+                  onClick={handleShare}
+                  className="flex items-center gap-2 text-sm text-gray-600 hover:text-black transition-colors"
+                  title="Share this product"
+                >
+                  <Share2 size={18} />
+                  Share
+                </button>
+              </div>
+              <h1 className="text-3xl font-medium mb-4">{product.name}</h1>
+              <div className="mb-6">
+                <p className="text-2xl font-semibold">${product.price.toFixed(2)}</p>
+              </div>
             </div>
 
             <div className="mb-8">
