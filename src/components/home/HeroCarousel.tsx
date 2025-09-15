@@ -1,5 +1,6 @@
 
 import React, { useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import gsap from 'gsap';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 
@@ -165,7 +166,12 @@ const HeroCarousel = () => {
                 <span className="block text-sm uppercase tracking-widest mb-2">{slide.subtitle}</span>
                 <h2 className="text-5xl md:text-7xl font-serif mb-4">{slide.title}</h2>
                 <p className="text-lg mb-8">{slide.description}</p>
-                <button className="btn-primary">{slide.ctaText}</button>
+                <Link 
+                  to={`/products?category=${slide.id}`}
+                  className="btn-primary inline-block"
+                >
+                  {slide.ctaText}
+                </Link>
               </div>
             </div>
           </div>
