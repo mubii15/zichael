@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import MainLayout from '../layouts/MainLayout';
 import { useCart } from '../context/CartContext';
-import { ArrowLeft, Minus, Plus, ShoppingBag, MessageCircle } from 'lucide-react';
+import { ArrowLeft, Minus, Plus, ShoppingBag } from 'lucide-react';
 import { toast } from 'sonner';
 import gsap from 'gsap';
 import SimilarProducts from '../components/products/SimilarProducts';
@@ -29,6 +29,7 @@ const ProductDetails = () => {
   const [quantity, setQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState('');
   const [selectedColor, setSelectedColor] = useState('');
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   
   const productImageRef = useRef<HTMLDivElement>(null);
   const productDetailsRef = useRef<HTMLDivElement>(null);
@@ -107,41 +108,9 @@ const ProductDetails = () => {
   const handleAddToCart = () => {
     if (!product) return;
     
-    addItem(product, quantity);
+    addItem({ ...product, image: product.images[0] }, quantity);
     toast.success(`${product.name} added to cart`);
   };
-
-  const handleWhatsAppContact = () => {
-    if (!product) return;
-    
-    // Create WhatsApp message with product details
-    const message = `Hello! I'm interested in your bespoke product: ${product.name} (₦${Number(product.price).toFixed(2)}).`;
-    const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
-    
-    // Open WhatsApp in a new tab
-    window.open(whatsappUrl, '_blank');
-  };
-
-  // Function to get full image URL
-  const getImageUrl = (url) => {
-    if (!url) return 'https://via.placeholder.com/600x800?text=No+Image';
-    
-    // If it's already a full URL, use it as-is
-    if (url.startsWith('http')) return url;
-    
-    // If it's a relative path, prepend the domain
-    return `https://zichael.com${url}`;
-  };
-
-  if (loading) {
-    return (
-      <MainLayout>
-        <div className="container mx-auto px-6 py-32 text-center">
-          <p>Loading product...</p>
-        </div>
-      </MainLayout>
-    );
-  }
 
   if (!product) {
     return (
@@ -160,82 +129,29 @@ const ProductDetails = () => {
   return (
     <MainLayout>
       <div className="container mx-auto px-6 pt-32 pb-16">
-        <Link to="/" className="inline-flex items-center text-sm hover:underline mb-8">
-          <ArrowLeft size={16} className="mr-2" />
-          Back to Products
-        </Link>
+        {/* Breadcrumbs */}
+        <nav className="flex items-center space-x-2 text-sm mb-8">
+          <Link to="/" className="hover:underline">Home</Link>
+          <ChevronRight size={16} className="text-gray-400" />
+          <Link to="/products" className="hover:underline">Products</Link>
+          <ChevronRight size={16} className="text-gray-400" />
+          <span className="text-gray-600">{product.name}</span>
+        </nav>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-          <div ref={productImageRef} className="overflow-hidden">
-            {product.images && product.images.length > 0 ? (
-              <div className="h-full">
-                {/* Main image slider with controlled height */}
-                <Swiper
-                  spaceBetween={10}
-                  navigation={true}
-                  thumbs={{ swiper: thumbsSwiper }}
-                  modules={[Navigation, Thumbs]}
-                  className="h-96 mb-4 rounded-lg overflow-hidden"
-                >
-                  {product.images.map((image, index) => (
-                    <SwiperSlide key={index}>
-                      <div className="h-full w-full flex items-center justify-center bg-gray-50 p-4">
-                        <img 
-                          src={getImageUrl(image)} 
-                          alt={`${product.name} ${index + 1}`}
-                          className="max-h-full max-w-full object-contain"
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.src = 'https://via.placeholder.com/600x800?text=Image+Error';
-                          }}
-                        />
-                      </div>
-                    </SwiperSlide>
-                  ))}
-                </Swiper>
-                
-                {/* Thumbnail slider */}
-                {product.images.length > 1 && (
-                  <Swiper
-                    onSwiper={setThumbsSwiper}
-                    spaceBetween={10}
-                    slidesPerView={4}
-                    freeMode={true}
-                    watchSlidesProgress={true}
-                    modules={[FreeMode, Navigation, Thumbs]}
-                    className="h-24"
-                  >
-                    {product.images.map((image, index) => (
-                      <SwiperSlide key={index}>
-                        <div className="h-full cursor-pointer border-2 border-transparent hover:border-gray-300 transition-colors rounded overflow-hidden">
-                          <img 
-                            src={getImageUrl(image)} 
-                            alt={`${product.name} thumbnail ${index + 1}`}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement;
-                              target.src = 'https://via.placeholder.com/100x100?text=Image+Error';
-                            }}
-                          />
-                        </div>
-                      </SwiperSlide>
-                    ))}
-                  </Swiper>
-                )}
-              </div>
-            ) : (
-              <div className="w-full h-96 flex items-center justify-center bg-gray-100 rounded-lg">
-                <span className="text-gray-400">No images available</span>
-              </div>
-            )}
+          <div ref={productImageRef} className="aspect-[3/4] overflow-hidden bg-gray-50">
+            <img 
+              src={product.image} 
+              alt={product.name} 
+              className="w-full h-full object-cover object-center"
+            />
           </div>
 
           <div ref={productDetailsRef} className="flex flex-col">
             <div className="mb-6">
-              <p className="text-sm text-gray-500 mb-2 capitalize">{product.category}</p>
+              <p className="text-sm text-gray-500 mb-2">{product.category}</p>
               <h1 className="text-3xl font-medium mb-3">{product.name}</h1>
-              <p className="text-xl">₦{Number(product.price).toFixed(2)}</p>
-              <p className="text-sm text-gray-500 mt-1 capitalize">Type: {product.type}</p>
+              <p className="text-xl">${product.price.toFixed(2)}</p>
             </div>
 
             <div className="mb-8">
