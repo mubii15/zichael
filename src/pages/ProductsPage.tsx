@@ -1,71 +1,61 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import MainLayout from '../layouts/MainLayout';
 import { useSearchParams } from 'react-router-dom';
 import ProductCard from '../components/products/ProductCard';
+import axios from 'axios';
 
-// Mock product data
-const mockProducts = [
-  {
-    id: '1',
-    name: 'Classic Tailored Suit',
-    price: 499.99,
-    image: 'https://images.unsplash.com/photo-1555069519-127aadedf1ee?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1287&q=80',
-    category: 'men',
-    type: 'bespoke'
-  },
-  {
-    id: '2',
-    name: 'Designer Evening Gown',
-    price: 899.99,
-    image: 'https://images.unsplash.com/photo-1572804013427-4d7ca7268217?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1365&q=80',
-    category: 'women',
-    type: 'bespoke'
-  },
-  {
-    id: '3',
-    name: 'Cotton Oxford Shirt',
-    price: 89.99,
-    image: 'https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1287&q=80',
-    category: 'men',
-    type: 'ready-to-wear'
-  },
-  {
-    id: '4',
-    name: 'Silk Blouse',
-    price: 129.99,
-    image: 'https://images.unsplash.com/photo-1564257631407-4deb1f99d992?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1364&q=80',
-    category: 'women',
-    type: 'ready-to-wear'
-  },
-  {
-    id: '5',
-    name: 'Kids Dress Set',
-    price: 79.99,
-    image: 'https://images.unsplash.com/photo-1543370566-12bdf5fac361?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1287&q=80',
-    category: 'kids',
-    type: 'ready-to-wear'
-  },
-  {
-    id: '6',
-    name: 'Kids Custom Suit',
-    price: 299.99,
-    image: 'https://images.unsplash.com/photo-1519238359922-989348752efb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1287&q=80',
-    category: 'kids',
-    type: 'bespoke'
-  }
-];
+const API_URL = 'https://zichael.com/api/products.php';
 
 const ProductsPage = () => {
   const [searchParams] = useSearchParams();
   const categoryFilter = searchParams.get('category');
   const typeFilter = searchParams.get('type');
   
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  
   const [filters, setFilters] = useState({
     category: categoryFilter || 'all',
     type: typeFilter || 'all',
   });
   
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        const res = await axios.get(`${API_URL}?action=list`);
+        
+        if (res.data && res.data.success) {
+          // Parse JSON strings from database
+          const productsData = res.data.products.map(product => ({
+            ...product,
+            images: Array.isArray(product.images) ? 
+              product.images : 
+              JSON.parse(product.images || '[]'),
+            sizes: Array.isArray(product.sizes) ? 
+              product.sizes : 
+              JSON.parse(product.sizes || '[]'),
+            colors: Array.isArray(product.colors) ? 
+              product.colors : 
+              JSON.parse(product.colors || '[]'),
+          }));
+          
+          setProducts(productsData);
+        } else {
+          setError(res.data?.error || "Failed to load products");
+        }
+      } catch (err) {
+        console.error("fetchProducts error:", err);
+        setError(err.message || "Failed to load products");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
   const handleFilterChange = (filterType: 'category' | 'type', value: string) => {
     setFilters(prev => ({
       ...prev,
@@ -74,11 +64,52 @@ const ProductsPage = () => {
   };
   
   // Filter products based on selected filters
-  const filteredProducts = mockProducts.filter(product => {
+  const filteredProducts = products.filter(product => {
     const matchesCategory = filters.category === 'all' || product.category === filters.category;
     const matchesType = filters.type === 'all' || product.type === filters.type;
     return matchesCategory && matchesType;
   });
+
+  // Function to get full image URL
+  const getImageUrl = (url) => {
+    if (!url) return 'https://via.placeholder.com/300x400?text=No+Image';
+    
+    // If it's already a full URL, use it as-is
+    if (url.startsWith('http')) return url;
+    
+    // If it's a relative path, prepend the domain
+    return `https://zichael.com${url}`;
+  };
+
+  if (loading) {
+    return (
+      <MainLayout>
+        <div className="pt-28 pb-16 px-6">
+          <div className="max-w-screen-xl mx-auto">
+            <h1 className="text-4xl md:text-5xl font-serif mb-12">Our Collection</h1>
+            <div className="text-center py-12">
+              <p>Loading products...</p>
+            </div>
+          </div>
+        </div>
+      </MainLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <MainLayout>
+        <div className="pt-28 pb-16 px-6">
+          <div className="max-w-screen-xl mx-auto">
+            <h1 className="text-4xl md:text-5xl font-serif mb-12">Our Collection</h1>
+            <div className="text-center py-12 text-red-500">
+              <p>Error: {error}</p>
+            </div>
+          </div>
+        </div>
+      </MainLayout>
+    );
+  }
 
   return (
     <MainLayout>
@@ -136,8 +167,9 @@ const ProductsPage = () => {
                       id={product.id}
                       name={product.name}
                       price={product.price}
-                      image={product.image}
+                      image={getImageUrl(product.images && product.images.length > 0 ? product.images[0] : '')}
                       category={product.category}
+                      type={product.type}
                     />
                   ))}
                 </div>

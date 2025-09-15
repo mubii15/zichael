@@ -2,62 +2,28 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import MainLayout from '../layouts/MainLayout';
 import { useCart } from '../context/CartContext';
-import { ArrowLeft, Minus, Plus, ShoppingBag } from 'lucide-react';
+import { ArrowLeft, Minus, Plus, ShoppingBag, MessageCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import gsap from 'gsap';
 import SimilarProducts from '../components/products/SimilarProducts';
+import axios from 'axios';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Navigation, Thumbs, FreeMode } from 'swiper/modules';
 
-// Sample product data - in a real app, this would come from an API
-const productsData = [
-  {
-    id: 'product-1',
-    name: 'Oversized Cotton Shirt',
-    price: 89.99,
-    image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1480&q=80',
-    hoverImage: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1288&q=80',
-    category: 'Men',
-    description: 'An oversized cotton shirt with a relaxed fit, perfect for casual occasions. Made from 100% organic cotton for breathability and comfort.',
-    sizes: ['XS', 'S', 'M', 'L', 'XL'],
-    colors: ['White', 'Black', 'Blue'],
-  },
-  {
-    id: 'product-2',
-    name: 'Wool Blend Blazer',
-    price: 249.99,
-    image: 'https://images.unsplash.com/photo-1507680434567-5739c80be1ac?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1480&q=80',
-    hoverImage: 'https://images.unsplash.com/photo-1541346160430-93fcee38d521?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1480&q=80',
-    category: 'Men',
-    description: 'A sophisticated wool blend blazer that offers warmth and style. Features a tailored fit with a two-button closure and notched lapels.',
-    sizes: ['S', 'M', 'L', 'XL'],
-    colors: ['Navy', 'Charcoal', 'Black'],
-  },
-  {
-    id: 'product-3',
-    name: 'Relaxed Linen Dress',
-    price: 129.99,
-    image: 'https://images.unsplash.com/photo-1485968579580-b6d095142e6e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1286&q=80',
-    hoverImage: 'https://images.unsplash.com/photo-1496747611176-843222e1e57c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1473&q=80',
-    category: 'Women',
-    description: 'A relaxed linen dress designed for comfort and style. Features a loose fit with a belted waist and side pockets.',
-    sizes: ['XS', 'S', 'M', 'L'],
-    colors: ['Beige', 'White', 'Sage'],
-  },
-  {
-    id: 'product-4',
-    name: 'Cotton Blend Midi Skirt',
-    price: 79.99,
-    image: 'https://images.unsplash.com/photo-1583846717393-dc2412c95ed7?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1329&q=80',
-    hoverImage: 'https://images.unsplash.com/photo-1603189041023-d9a2dbc1f2ac?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1374&q=80',
-    category: 'Women',
-    description: 'A versatile cotton blend midi skirt with an elastic waistband and flowy design. Perfect for both casual and semi-formal occasions.',
-    sizes: ['XS', 'S', 'M', 'L', 'XL'],
-    colors: ['Black', 'Navy', 'Burgundy'],
-  },
-];
+// Import Swiper styles
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/thumbs';
+import 'swiper/css/free-mode';
+
+const API_URL = 'https://zichael.com/api/products.php';
+const WHATSAPP_NUMBER = '2348123456789'; // Replace with your actual WhatsApp number
 
 const ProductDetails = () => {
   const { productId } = useParams<{ productId: string }>();
-  const product = productsData.find(p => p.id === productId);
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [thumbsSwiper, setThumbsSwiper] = useState(null);
   const { addItem } = useCart();
   
   const [quantity, setQuantity] = useState(1);
@@ -68,11 +34,47 @@ const ProductDetails = () => {
   const productDetailsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (product && product.sizes && product.sizes.length > 0) {
-      setSelectedSize(product.sizes[0]);
-    }
-    if (product && product.colors && product.colors.length > 0) {
-      setSelectedColor(product.colors[0]);
+    const fetchProduct = async () => {
+      try {
+        setLoading(true);
+        const res = await axios.get(`${API_URL}?action=get&id=${productId}`);
+        if (res.data && res.data.success) {
+          const productData = res.data.product;
+          
+          // Parse JSON strings from database
+          productData.images = Array.isArray(productData.images) ? 
+            productData.images : 
+            JSON.parse(productData.images || '[]');
+          
+          productData.sizes = Array.isArray(productData.sizes) ? 
+            productData.sizes : 
+            JSON.parse(productData.sizes || '[]');
+          
+          productData.colors = Array.isArray(productData.colors) ? 
+            productData.colors : 
+            JSON.parse(productData.colors || '[]');
+          
+          setProduct(productData);
+          
+          if (productData.sizes && productData.sizes.length > 0) {
+            setSelectedSize(productData.sizes[0]);
+          }
+          if (productData.colors && productData.colors.length > 0) {
+            setSelectedColor(productData.colors[0]);
+          }
+        } else {
+          toast.error(res.data?.error || "Failed to load product");
+        }
+      } catch (err) {
+        console.error("fetchProduct error:", err);
+        toast.error("Failed to load product");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (productId) {
+      fetchProduct();
     }
 
     // Animation for product page elements
@@ -92,7 +94,7 @@ const ProductDetails = () => {
 
     // Reset scroll position when visiting a new product
     window.scrollTo(0, 0);
-  }, [productId, product]);
+  }, [productId]);
 
   const decreaseQuantity = () => {
     setQuantity(prev => (prev > 1 ? prev - 1 : 1));
@@ -108,6 +110,38 @@ const ProductDetails = () => {
     addItem(product, quantity);
     toast.success(`${product.name} added to cart`);
   };
+
+  const handleWhatsAppContact = () => {
+    if (!product) return;
+    
+    // Create WhatsApp message with product details
+    const message = `Hello! I'm interested in your bespoke product: ${product.name} (₦${Number(product.price).toFixed(2)}).`;
+    const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+    
+    // Open WhatsApp in a new tab
+    window.open(whatsappUrl, '_blank');
+  };
+
+  // Function to get full image URL
+  const getImageUrl = (url) => {
+    if (!url) return 'https://via.placeholder.com/600x800?text=No+Image';
+    
+    // If it's already a full URL, use it as-is
+    if (url.startsWith('http')) return url;
+    
+    // If it's a relative path, prepend the domain
+    return `https://zichael.com${url}`;
+  };
+
+  if (loading) {
+    return (
+      <MainLayout>
+        <div className="container mx-auto px-6 py-32 text-center">
+          <p>Loading product...</p>
+        </div>
+      </MainLayout>
+    );
+  }
 
   if (!product) {
     return (
@@ -132,95 +166,171 @@ const ProductDetails = () => {
         </Link>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-          <div ref={productImageRef} className="aspect-[3/4] overflow-hidden bg-gray-50">
-            <img 
-              src={product.image} 
-              alt={product.name} 
-              className="w-full h-full object-cover object-center"
-            />
+          <div ref={productImageRef} className="overflow-hidden">
+            {product.images && product.images.length > 0 ? (
+              <div className="h-full">
+                {/* Main image slider with controlled height */}
+                <Swiper
+                  spaceBetween={10}
+                  navigation={true}
+                  thumbs={{ swiper: thumbsSwiper }}
+                  modules={[Navigation, Thumbs]}
+                  className="h-96 mb-4 rounded-lg overflow-hidden"
+                >
+                  {product.images.map((image, index) => (
+                    <SwiperSlide key={index}>
+                      <div className="h-full w-full flex items-center justify-center bg-gray-50 p-4">
+                        <img 
+                          src={getImageUrl(image)} 
+                          alt={`${product.name} ${index + 1}`}
+                          className="max-h-full max-w-full object-contain"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.src = 'https://via.placeholder.com/600x800?text=Image+Error';
+                          }}
+                        />
+                      </div>
+                    </SwiperSlide>
+                  ))}
+                </Swiper>
+                
+                {/* Thumbnail slider */}
+                {product.images.length > 1 && (
+                  <Swiper
+                    onSwiper={setThumbsSwiper}
+                    spaceBetween={10}
+                    slidesPerView={4}
+                    freeMode={true}
+                    watchSlidesProgress={true}
+                    modules={[FreeMode, Navigation, Thumbs]}
+                    className="h-24"
+                  >
+                    {product.images.map((image, index) => (
+                      <SwiperSlide key={index}>
+                        <div className="h-full cursor-pointer border-2 border-transparent hover:border-gray-300 transition-colors rounded overflow-hidden">
+                          <img 
+                            src={getImageUrl(image)} 
+                            alt={`${product.name} thumbnail ${index + 1}`}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.src = 'https://via.placeholder.com/100x100?text=Image+Error';
+                            }}
+                          />
+                        </div>
+                      </SwiperSlide>
+                    ))}
+                  </Swiper>
+                )}
+              </div>
+            ) : (
+              <div className="w-full h-96 flex items-center justify-center bg-gray-100 rounded-lg">
+                <span className="text-gray-400">No images available</span>
+              </div>
+            )}
           </div>
 
           <div ref={productDetailsRef} className="flex flex-col">
             <div className="mb-6">
-              <p className="text-sm text-gray-500 mb-2">{product.category}</p>
+              <p className="text-sm text-gray-500 mb-2 capitalize">{product.category}</p>
               <h1 className="text-3xl font-medium mb-3">{product.name}</h1>
-              <p className="text-xl">${product.price.toFixed(2)}</p>
+              <p className="text-xl">₦{Number(product.price).toFixed(2)}</p>
+              <p className="text-sm text-gray-500 mt-1 capitalize">Type: {product.type}</p>
             </div>
 
             <div className="mb-8">
               <p className="text-gray-700 leading-relaxed">{product.description}</p>
             </div>
 
-            <div className="mb-6">
-              <h3 className="text-sm uppercase tracking-wider mb-3">Size</h3>
-              <div className="flex flex-wrap gap-3">
-                {product.sizes?.map(size => (
-                  <button
-                    key={size}
-                    className={`px-4 py-2 border text-sm font-medium ${
-                      selectedSize === size
-                        ? 'border-black bg-black text-white'
-                        : 'border-gray-300 hover:border-gray-600'
-                    }`}
-                    onClick={() => setSelectedSize(size)}
-                  >
-                    {size}
-                  </button>
-                ))}
+            {product.sizes && product.sizes.length > 0 && (
+              <div className="mb-6">
+                <h3 className="text-sm uppercase tracking-wider mb-3">Size</h3>
+                <div className="flex flex-wrap gap-3">
+                  {product.sizes.map(size => (
+                    <button
+                      key={size}
+                      className={`px-4 py-2 border text-sm font-medium ${
+                        selectedSize === size
+                          ? 'border-black bg-black text-white'
+                          : 'border-gray-300 hover:border-gray-600'
+                      }`}
+                      onClick={() => setSelectedSize(size)}
+                    >
+                      {size}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
-            <div className="mb-8">
-              <h3 className="text-sm uppercase tracking-wider mb-3">Color</h3>
-              <div className="flex flex-wrap gap-3">
-                {product.colors?.map(color => (
-                  <button
-                    key={color}
-                    className={`px-4 py-2 border text-sm font-medium ${
-                      selectedColor === color
-                        ? 'border-black bg-black text-white'
-                        : 'border-gray-300 hover:border-gray-600'
-                    }`}
-                    onClick={() => setSelectedColor(color)}
-                  >
-                    {color}
-                  </button>
-                ))}
+            {product.colors && product.colors.length > 0 && (
+              <div className="mb-8">
+                <h3 className="text-sm uppercase tracking-wider mb-3">Color</h3>
+                <div className="flex flex-wrap gap-3">
+                  {product.colors.map(color => (
+                    <button
+                      key={color}
+                      className={`px-4 py-2 border text-sm font-medium ${
+                        selectedColor === color
+                          ? 'border-black bg-black text-white'
+                          : 'border-gray-300 hover:border-gray-600'
+                      }`}
+                      onClick={() => setSelectedColor(color)}
+                    >
+                      {color}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
-            <div className="mb-8">
-              <h3 className="text-sm uppercase tracking-wider mb-3">Quantity</h3>
-              <div className="flex items-center border border-gray-300 w-32">
-                <button 
-                  className="px-3 py-2 flex items-center justify-center" 
-                  onClick={decreaseQuantity}
-                >
-                  <Minus size={16} />
-                </button>
-                <div className="flex-1 text-center font-medium">{quantity}</div>
-                <button 
-                  className="px-3 py-2 flex items-center justify-center" 
-                  onClick={increaseQuantity}
-                >
-                  <Plus size={16} />
-                </button>
+            {product.type === 'ready-to-wear' && (
+              <div className="mb-8">
+                <h3 className="text-sm uppercase tracking-wider mb-3">Quantity</h3>
+                <div className="flex items-center border border-gray-300 w-32">
+                  <button 
+                    className="px-3 py-2 flex items-center justify-center" 
+                    onClick={decreaseQuantity}
+                  >
+                    <Minus size={16} />
+                  </button>
+                  <div className="flex-1 text-center font-medium">{quantity}</div>
+                  <button 
+                    className="px-3 py-2 flex items-center justify-center" 
+                    onClick={increaseQuantity}
+                  >
+                    <Plus size={16} />
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
 
             <div className="mt-auto pt-6 border-t border-gray-200">
-              <button
-                className="w-full py-4 bg-black text-white hover:bg-gray-800 transition-colors flex items-center justify-center"
-                onClick={handleAddToCart}
-              >
-                <ShoppingBag size={18} className="mr-2" />
-                Add to Cart
-              </button>
+              {product.type === 'ready-to-wear' ? (
+                <button
+                  className="w-full py-4 bg-black text-white hover:bg-gray-800 transition-colors flex items-center justify-center"
+                  onClick={handleAddToCart}
+                >
+                  <ShoppingBag size={18} className="mr-2" />
+                  Add to Cart
+                </button>
+              ) : (
+                <button
+                  className="w-full py-4 bg-green-600 text-white hover:bg-green-700 transition-colors flex items-center justify-center"
+                  onClick={handleWhatsAppContact}
+                >
+                  <MessageCircle size={18} className="mr-2" />
+                  Contact on WhatsApp
+                </button>
+              )}
             </div>
           </div>
         </div>
         
-        <SimilarProducts currentProductId={product.id} category={product.category} />
+        <SimilarProducts 
+          currentProductId={product.id} 
+          category={product.category} 
+        />
       </div>
     </MainLayout>
   );
