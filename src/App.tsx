@@ -24,6 +24,7 @@ import CheckoutPage from "./pages/checkout/CheckoutPage";
 import ConfirmOrderPage from "./pages/checkout/ConfirmOrderPage";
 import OrderSuccessPage from "./pages/checkout/OrderSuccessPage";
 import ProtectedRoute from "./components/ProtectedRoute";
+import CategoryRedirect from "./components/CategoryRedirect";
 
 const queryClient = new QueryClient();
 
@@ -41,6 +42,9 @@ const App = () => (
               <Route path="/signup" element={<SignupPage />} />
               <Route path="/products" element={<ProductsPage />} />
               <Route path="/products/:productId" element={<ProductDetails />} />
+              <Route path="/men" element={<CategoryRedirect />} />
+              <Route path="/women" element={<CategoryRedirect />} />
+              <Route path="/kids" element={<CategoryRedirect />} />
               
               {/* Protected Routes */}
               <Route path="/cart" element={

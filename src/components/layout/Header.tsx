@@ -1,9 +1,15 @@
 
 import React, { useState, useEffect } from 'react';
-import { Menu, X, ShoppingBag, User } from 'lucide-react';
+import { Menu, X, ShoppingBag, User, Instagram } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import MainMenu from './MainMenu';
 import { useCart } from '../../context/CartContext';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -38,6 +44,23 @@ const Header = () => {
         <Link to="/account" className="text-sm hidden md:block hover:opacity-70 transition-opacity duration-300">
           <User size={20} />
         </Link>
+        
+        <DropdownMenu>
+          <DropdownMenuTrigger className="text-sm hover:opacity-70 transition-opacity duration-300">
+            <Instagram size={20} />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="bg-white shadow-lg border z-50">
+            <DropdownMenuItem>
+              <Link to="/men" className="w-full">Men</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              <Link to="/women" className="w-full">Women</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              <Link to="/kids" className="w-full">Children</Link>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
         
         <Link to="/cart" className="text-sm relative hover:opacity-70 transition-opacity duration-300">
           <ShoppingBag size={20} />
