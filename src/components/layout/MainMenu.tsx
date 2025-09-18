@@ -65,22 +65,30 @@ const MainMenu: React.FC<MainMenuProps> = ({ isOpen, onClose }) => {
       <div className="container mx-auto px-12 py-8">
         <nav className="flex flex-col items-start">
           <ul className="space-y-6 w-full">
-            {['Home', 'Men', 'Women', 'Kids', 'About', 'Contact'].map((item, index) => (
-              <li 
-                key={item} 
-                ref={el => linkRefs.current[index] = el}
-                className="opacity-0"
-              >
-                <Link 
-                  to={item === 'Home' ? '/' : `/${item.toLowerCase()}`} 
-                  className="text-2xl font-medium tracking-wide hover:text-gray-600 transition-colors duration-300 flex items-center group"
-                  onClick={onClose}
+            {['Home', 'Men', 'Women', 'Kids', 'About', 'Contact'].map((item, index) => {
+              const getPath = () => {
+                if (item === 'Home') return '/';
+                if (['Men', 'Women', 'Kids'].includes(item)) return `/products?category=${item.toLowerCase()}`;
+                return `/${item.toLowerCase()}`;
+              };
+
+              return (
+                <li 
+                  key={item} 
+                  ref={el => linkRefs.current[index] = el}
+                  className="opacity-0"
                 >
-                  {item}
-                  <span className="h-[1px] w-0 bg-black ml-2 transition-all duration-300 group-hover:w-12"></span>
-                </Link>
-              </li>
-            ))}
+                  <Link 
+                    to={getPath()} 
+                    className="text-2xl font-medium tracking-wide hover:text-gray-600 transition-colors duration-300 flex items-center group"
+                    onClick={onClose}
+                  >
+                    {item}
+                    <span className="h-[1px] w-0 bg-black ml-2 transition-all duration-300 group-hover:w-12"></span>
+                  </Link>
+                </li>
+              );
+            })}
           </ul>
         </nav>
 

@@ -21,6 +21,13 @@ const ProductsPage = () => {
   });
   
   useEffect(() => {
+    // Update filters when URL parameters change
+    setFilters({
+      category: categoryFilter || 'all',
+      type: typeFilter || 'all',
+    });
+  }, [categoryFilter, typeFilter]);
+  useEffect(() => {
     const fetchProducts = async () => {
       try {
         setLoading(true);
@@ -160,19 +167,18 @@ const ProductsPage = () => {
                   <p className="text-gray-600">No products found matching your filters.</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                  {filteredProducts.map(product => (
-                    <ProductCard 
-                      key={product.id} 
-                      id={product.id}
-                      name={product.name}
-                      price={product.price}
-                      image={getImageUrl(product.images && product.images.length > 0 ? product.images[0] : '')}
-                      category={product.category}
-                      type={product.type}
-                    />
-                  ))}
-                </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                    {filteredProducts.map(product => (
+                      <ProductCard 
+                        key={product.id} 
+                        id={product.id}
+                        name={product.name}
+                        price={product.price}
+                        image={getImageUrl(product.images && product.images.length > 0 ? product.images[0] : '')}
+                        category={product.category}
+                      />
+                    ))}
+                  </div>
               )}
             </div>
           </div>
