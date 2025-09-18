@@ -1,5 +1,8 @@
-
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { useAuth } from './AuthContext';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { toast } from 'sonner';
 
 export interface CartItem {
   id: string;
@@ -18,58 +21,135 @@ interface CartContextType {
   clearCart: () => void;
   totalItems: number;
   totalPrice: number;
+  loading: boolean;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
-// Sample product for initial cart
-const sampleProduct = {
-  id: 'product-3',
-  name: 'Relaxed Linen Dress',
-  price: 129.99,
-  image: 'https://images.unsplash.com/photo-1485968579580-b6d095142e6e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1286&q=80',
-  category: 'Women',
-  quantity: 1
-};
-
 export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [items, setItems] = useState<CartItem[]>([sampleProduct]);
+  const [items, setItems] = useState<CartItem[]>([]);
+  const [loading, setLoading] = useState(false);
+  const { currentUser } = useAuth();
+  const navigate = useNavigate();
+  const API_URL = 'https://zichael.com/api/cart.php';
 
-  const addItem = (product: Omit<CartItem, 'quantity'>, quantity = 1) => {
-    setItems(prevItems => {
-      const existingItem = prevItems.find(item => item.id === product.id);
-      
-      if (existingItem) {
-        return prevItems.map(item => 
-          item.id === product.id 
-            ? { ...item, quantity: item.quantity + quantity } 
-            : item
-        );
-      } else {
-        return [...prevItems, { ...product, quantity }];
+  // Fetch cart items when user changes
+  useEffect(() => {
+    if (currentUser) {
+      fetchCart();
+    } else {
+      setItems([]);
+    }
+  }, [currentUser]);
+
+  const fetchCart = async () => {
+    if (!currentUser) return;
+    
+    setLoading(true);
+    try {
+      const res = await axios.get(`${API_URL}?user_id=${currentUser.id}`);
+      if (res.data && res.data.success) {
+        setItems(res.data.cart || []);
       }
-    });
+    } catch (err) {
+      console.error("fetchCart error:", err);
+      toast.error("Failed to load cart");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const removeItem = (id: string) => {
-    setItems(prevItems => prevItems.filter(item => item.id !== id));
+  const addItem = async (product: Omit<CartItem, 'quantity'>, quantity = 1) => {
+    if (!currentUser) {
+      toast.error("Please login to add items to cart");
+      navigate('/login');
+      return;
+    }
+
+    try {
+      const res = await axios.post(`${API_URL}?action=add`, {
+        user_id: currentUser.id,
+        product_id: product.id,
+        quantity: quantity
+      });
+
+      if (res.data && res.data.success) {
+        await fetchCart(); // Refresh cart
+        toast.success("Item added to cart");
+      } else {
+        toast.error(res.data.error || "Failed to add item");
+      }
+    } catch (err) {
+      console.error("addItem error:", err);
+      toast.error(err.response?.data?.error || "Failed to add item");
+    }
   };
 
-  const updateQuantity = (id: string, quantity: number) => {
+  const removeItem = async (id: string) => {
+    if (!currentUser) return;
+
+    try {
+      const res = await axios.post(`${API_URL}?action=remove`, {
+        user_id: currentUser.id,
+        product_id: id
+      });
+
+      if (res.data && res.data.success) {
+        await fetchCart(); // Refresh cart
+        toast.success("Item removed from cart");
+      } else {
+        toast.error(res.data.error || "Failed to remove item");
+      }
+    } catch (err) {
+      console.error("removeItem error:", err);
+      toast.error(err.response?.data?.error || "Failed to remove item");
+    }
+  };
+
+  const updateQuantity = async (id: string, quantity: number) => {
+    if (!currentUser) return;
+
     if (quantity <= 0) {
       removeItem(id);
       return;
     }
-    
-    setItems(prevItems => 
-      prevItems.map(item => 
-        item.id === id ? { ...item, quantity } : item
-      )
-    );
+
+    try {
+      const res = await axios.post(`${API_URL}?action=update`, {
+        user_id: currentUser.id,
+        product_id: id,
+        quantity: quantity
+      });
+
+      if (res.data && res.data.success) {
+        await fetchCart(); // Refresh cart
+      } else {
+        toast.error(res.data.error || "Failed to update quantity");
+      }
+    } catch (err) {
+      console.error("updateQuantity error:", err);
+      toast.error(err.response?.data?.error || "Failed to update quantity");
+    }
   };
 
-  const clearCart = () => {
-    setItems([]);
+  const clearCart = async () => {
+    if (!currentUser) return;
+
+    try {
+      const res = await axios.post(`${API_URL}?action=clear`, {
+        user_id: currentUser.id
+      });
+
+      if (res.data && res.data.success) {
+        setItems([]);
+        toast.success("Cart cleared");
+      } else {
+        toast.error(res.data.error || "Failed to clear cart");
+      }
+    } catch (err) {
+      console.error("clearCart error:", err);
+      toast.error(err.response?.data?.error || "Failed to clear cart");
+    }
   };
 
   const totalItems = items.reduce((total, item) => total + item.quantity, 0);
@@ -88,7 +168,8 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         updateQuantity, 
         clearCart, 
         totalItems,
-        totalPrice
+        totalPrice,
+        loading
       }}
     >
       {children}

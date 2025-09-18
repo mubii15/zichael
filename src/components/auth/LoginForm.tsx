@@ -1,27 +1,67 @@
-
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '../../context/AuthContext';
+import axios from 'axios';
+
+const API_URL = 'https://zichael.com/api/users.php';
 
 const LoginForm = () => {
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const { login } = useAuth();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!username || !password) {
+      toast({
+        title: "Error",
+        description: "Please enter both username and password",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
     
-    // Simulate API call
-    setTimeout(() => {
-      // Mock login success
-      toast({
-        title: "Success!",
-        description: "You have successfully logged in.",
+    try {
+      const response = await axios.post(`${API_URL}?action=login`, {
+        username,
+        password
       });
+
+      if (response.data && response.data.success) {
+        toast({
+          title: "Success!",
+          description: "You have successfully logged in.",
+        });
+        
+        // Save user data to context and localStorage
+        login(response.data.user);
+        
+        // Redirect to home page
+        navigate('/');
+      } else {
+        toast({
+          title: "Error",
+          description: response.data?.error || "Login failed",
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
+      console.error("Login error:", error);
+      toast({
+        title: "Error",
+        description: error.response?.data?.error || "Login failed. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   return (
@@ -33,16 +73,16 @@ const LoginForm = () => {
       
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-2">
-          <label htmlFor="email" className="text-sm font-medium">
-            Email
+          <label htmlFor="username" className="text-sm font-medium">
+            Username
           </label>
           <input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            id="username"
+            type="text"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
             className="w-full px-4 py-3 border border-input bg-background"
-            placeholder="name@example.com"
+            placeholder="Enter your username"
             required
           />
         </div>
@@ -68,7 +108,7 @@ const LoginForm = () => {
         
         <button
           type="submit"
-          className="w-full btn-primary"
+          className="w-full btn-primary py-3"
           disabled={isLoading}
         >
           {isLoading ? "Signing in..." : "Sign In"}

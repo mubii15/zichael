@@ -1,22 +1,46 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import MainLayout from '../layouts/MainLayout';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/context/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+
+const API_URL = 'https://zichael.com/api/users.php';
 
 const AccountPage = () => {
+  const { currentUser, login, logout } = useAuth();
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  const [isEditing, setIsEditing] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  
   const [formData, setFormData] = useState({
-    name: 'John Doe',
-    email: 'john.doe@example.com',
-    phone: '+1 (555) 123-4567',
-    address: '123 Main St',
-    city: 'New York',
-    state: 'NY',
-    zipCode: '10001',
-    country: 'United States'
+    full_name: '',
+    email: '',
+    phone: '',
+    address: '',
+    city: '',
+    state: '',
+    country: '',
+    username: ''
   });
   
-  const { toast } = useToast();
-  const [isEditing, setIsEditing] = useState(false);
+  // Initialize form data with current user info
+  useEffect(() => {
+    if (currentUser) {
+      setFormData({
+        full_name: currentUser.full_name || '',
+        email: currentUser.email || '',
+        phone: currentUser.phone || '',
+        address: currentUser.address || '',
+        city: currentUser.city || '',
+        state: currentUser.state || '',
+        country: currentUser.country || '',
+        username: currentUser.username || ''
+      });
+    }
+  }, [currentUser]);
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -26,17 +50,101 @@ const AccountPage = () => {
     }));
   };
   
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Mock update success
-    setTimeout(() => {
+    
+    if (!currentUser) {
       toast({
-        title: "Profile Updated",
-        description: "Your account information has been successfully updated.",
+        title: "Error",
+        description: "You must be logged in to update your profile",
+        variant: "destructive",
       });
-      setIsEditing(false);
-    }, 500);
+      return;
+    }
+    
+    setIsLoading(true);
+    
+    try {
+      const response = await axios.post(`${API_URL}?action=update`, {
+        user_id: currentUser.id,
+        ...formData
+      });
+      
+      if (response.data && response.data.success) {
+        toast({
+          title: "Profile Updated",
+          description: "Your account information has been successfully updated.",
+        });
+        
+        // Update the user context with new data
+        login({
+          ...currentUser,
+          ...formData
+        });
+        
+        setIsEditing(false);
+      } else {
+        toast({
+          title: "Error",
+          description: response.data?.error || "Failed to update profile",
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
+      console.error("Update profile error:", error);
+      toast({
+        title: "Error",
+        description: error.response?.data?.error || "Failed to update profile. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      // Call your API to clear the server session if needed
+      // For PHP sessions, this might not be necessary as the session
+      // will naturally expire, but you can add a logout endpoint if desired
+      
+      // Clear client-side authentication
+      logout();
+      
+      toast({
+        title: "Logged Out",
+        description: "You have been successfully logged out.",
+      });
+      
+      navigate('/');
+    } catch (error) {
+      console.error("Logout error:", error);
+      toast({
+        title: "Error",
+        description: "Failed to logout. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
+
+  if (!currentUser) {
+    return (
+      <MainLayout>
+        <div className="pt-28 pb-16 px-6">
+          <div className="max-w-screen-xl mx-auto text-center">
+            <h1 className="text-4xl md:text-5xl font-serif mb-8">My Account</h1>
+            <p className="text-lg mb-6">Please log in to view your account information.</p>
+            <a href="/login" className="btn-primary inline-block">
+              Login
+            </a>
+          </div>
+        </div>
+      </MainLayout>
+    );
+  }
 
   return (
     <MainLayout>
@@ -51,8 +159,13 @@ const AccountPage = () => {
                 <nav className="space-y-2">
                   <a href="#profile" className="block text-sm font-medium">Profile Information</a>
                   <a href="#orders" className="block text-sm text-gray-600 hover:text-black">Order History</a>
-                  <a href="#addresses" className="block text-sm text-gray-600 hover:text-black">Saved Addresses</a>
-                  <a href="#password" className="block text-sm text-gray-600 hover:text-black">Change Password</a>
+                  <button 
+                    onClick={handleLogout}
+                    disabled={isLoggingOut}
+                    className="block text-sm text-gray-600 hover:text-black disabled:opacity-50"
+                  >
+                    {isLoggingOut ? 'Logging out...' : 'Logout'}
+                  </button>
                 </nav>
               </div>
             </div>
@@ -64,8 +177,9 @@ const AccountPage = () => {
                   <button 
                     className="text-sm underline"
                     onClick={() => setIsEditing(!isEditing)}
+                    disabled={isLoading}
                   >
-                    {isEditing ? 'Cancel' : 'Edit'}
+                    {isLoading ? 'Saving...' : isEditing ? 'Cancel' : 'Edit'}
                   </button>
                 </div>
                 
@@ -73,14 +187,15 @@ const AccountPage = () => {
                   <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
-                        <label htmlFor="name" className="block text-sm font-medium mb-2">Full Name</label>
+                        <label htmlFor="full_name" className="block text-sm font-medium mb-2">Full Name</label>
                         <input 
                           type="text" 
-                          id="name" 
-                          name="name"
-                          value={formData.name}
+                          id="full_name" 
+                          name="full_name"
+                          value={formData.full_name}
                           onChange={handleChange}
                           className="w-full px-4 py-3 border border-input bg-background"
+                          required
                         />
                       </div>
                       
@@ -93,6 +208,20 @@ const AccountPage = () => {
                           value={formData.email}
                           onChange={handleChange}
                           className="w-full px-4 py-3 border border-input bg-background"
+                          required
+                        />
+                      </div>
+                      
+                      <div>
+                        <label htmlFor="username" className="block text-sm font-medium mb-2">Username</label>
+                        <input 
+                          type="text" 
+                          id="username" 
+                          name="username"
+                          value={formData.username}
+                          onChange={handleChange}
+                          className="w-full px-4 py-3 border border-input bg-background"
+                          required
                         />
                       </div>
                       
@@ -145,18 +274,6 @@ const AccountPage = () => {
                       </div>
                       
                       <div>
-                        <label htmlFor="zipCode" className="block text-sm font-medium mb-2">ZIP/Postal Code</label>
-                        <input 
-                          type="text" 
-                          id="zipCode" 
-                          name="zipCode"
-                          value={formData.zipCode}
-                          onChange={handleChange}
-                          className="w-full px-4 py-3 border border-input bg-background"
-                        />
-                      </div>
-                      
-                      <div>
                         <label htmlFor="country" className="block text-sm font-medium mb-2">Country</label>
                         <input 
                           type="text" 
@@ -170,8 +287,12 @@ const AccountPage = () => {
                     </div>
                     
                     <div className="pt-4">
-                      <button type="submit" className="btn-primary">
-                        Save Changes
+                      <button 
+                        type="submit" 
+                        className="btn-primary"
+                        disabled={isLoading}
+                      >
+                        {isLoading ? 'Saving Changes...' : 'Save Changes'}
                       </button>
                     </div>
                   </form>
@@ -180,42 +301,42 @@ const AccountPage = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
                         <h3 className="text-sm text-gray-500 mb-1">Full Name</h3>
-                        <p>{formData.name}</p>
+                        <p>{formData.full_name || 'Not provided'}</p>
                       </div>
                       
                       <div>
                         <h3 className="text-sm text-gray-500 mb-1">Email</h3>
-                        <p>{formData.email}</p>
+                        <p>{formData.email || 'Not provided'}</p>
+                      </div>
+                      
+                      <div>
+                        <h3 className="text-sm text-gray-500 mb-1">Username</h3>
+                        <p>{formData.username || 'Not provided'}</p>
                       </div>
                       
                       <div>
                         <h3 className="text-sm text-gray-500 mb-1">Phone</h3>
-                        <p>{formData.phone}</p>
+                        <p>{formData.phone || 'Not provided'}</p>
                       </div>
                       
                       <div>
                         <h3 className="text-sm text-gray-500 mb-1">Address</h3>
-                        <p>{formData.address}</p>
+                        <p>{formData.address || 'Not provided'}</p>
                       </div>
                       
                       <div>
                         <h3 className="text-sm text-gray-500 mb-1">City</h3>
-                        <p>{formData.city}</p>
+                        <p>{formData.city || 'Not provided'}</p>
                       </div>
                       
                       <div>
                         <h3 className="text-sm text-gray-500 mb-1">State/Province</h3>
-                        <p>{formData.state}</p>
-                      </div>
-                      
-                      <div>
-                        <h3 className="text-sm text-gray-500 mb-1">ZIP/Postal Code</h3>
-                        <p>{formData.zipCode}</p>
+                        <p>{formData.state || 'Not provided'}</p>
                       </div>
                       
                       <div>
                         <h3 className="text-sm text-gray-500 mb-1">Country</h3>
-                        <p>{formData.country}</p>
+                        <p>{formData.country || 'Not provided'}</p>
                       </div>
                     </div>
                   </div>
