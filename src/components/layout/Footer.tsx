@@ -2,6 +2,13 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
+import { Instagram } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Footer = () => {
   const navigate = useNavigate();
@@ -66,7 +73,25 @@ const Footer = () => {
             <h4 className="text-sm uppercase mb-6">Connect</h4>
             <ul className="space-y-3">
               <li><Link to="/about" className="text-sm text-gray-300 hover:text-white">Our Story</Link></li>
-              <li><a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="text-sm text-gray-300 hover:text-white">Instagram</a></li>
+              <li>
+                <DropdownMenu>
+                  <DropdownMenuTrigger className="text-sm text-gray-300 hover:text-white flex items-center gap-2">
+                    <Instagram size={16} />
+                    Instagram
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="bg-white shadow-lg border z-50">
+                    <DropdownMenuItem>
+                      <Link to="/men" className="w-full">Men</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <Link to="/women" className="w-full">Women</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <Link to="/kids" className="w-full">Children</Link>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </li>
               <li><a href="https://pinterest.com" target="_blank" rel="noopener noreferrer" className="text-sm text-gray-300 hover:text-white">Pinterest</a></li>
               <li><a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="text-sm text-gray-300 hover:text-white">Twitter</a></li>
             </ul>
