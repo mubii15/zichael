@@ -43,21 +43,36 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, [currentUser]);
 
   const fetchCart = async () => {
-    if (!currentUser) return;
+  if (!currentUser) return;
+  
+  setLoading(true);
+  try {
+    const res = await axios.get(`${API_URL}?action=get&user_id=${currentUser.id}`);
+    console.log("Cart API response:", res.data);
     
-    setLoading(true);
-    try {
-      const res = await axios.get(`${API_URL}?user_id=${currentUser.id}`);
-      if (res.data && res.data.success) {
-        setItems(res.data.cart || []);
-      }
-    } catch (err) {
-      console.error("fetchCart error:", err);
+    if (res.data && res.data.success) {
+      // Ensure the data structure matches our CartItem interface
+      const cartItems = res.data.cart.map((item: any) => ({
+        id: item.id.toString(),
+        name: item.name,
+        price: parseFloat(item.price),
+        image: item.image || '', // Handle case where image might be null
+        quantity: parseInt(item.quantity),
+        category: item.category
+      }));
+      
+      setItems(cartItems || []);
+    } else {
+      console.error("Failed to fetch cart:", res.data.error);
       toast.error("Failed to load cart");
-    } finally {
-      setLoading(false);
     }
-  };
+  } catch (err) {
+    console.error("fetchCart error:", err);
+    toast.error("Failed to load cart");
+  } finally {
+    setLoading(false);
+  }
+};
 
   const addItem = async (product: Omit<CartItem, 'quantity'>, quantity = 1) => {
     if (!currentUser) {
@@ -85,52 +100,59 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  const removeItem = async (id: string) => {
-    if (!currentUser) return;
+  // In the CartContext, add detailed logging to the removeItem and updateQuantity functions
+const removeItem = async (id: string) => {
+  if (!currentUser) return;
 
-    try {
-      const res = await axios.post(`${API_URL}?action=remove`, {
-        user_id: currentUser.id,
-        product_id: id
-      });
+  try {
+    console.log("Removing item:", { user_id: currentUser.id, product_id: id });
+    const res = await axios.post(`${API_URL}?action=remove`, {
+      user_id: currentUser.id,
+      product_id: id
+    });
 
-      if (res.data && res.data.success) {
-        await fetchCart(); // Refresh cart
-        toast.success("Item removed from cart");
-      } else {
-        toast.error(res.data.error || "Failed to remove item");
-      }
-    } catch (err) {
-      console.error("removeItem error:", err);
-      toast.error(err.response?.data?.error || "Failed to remove item");
+    console.log("Remove response:", res.data);
+    
+    if (res.data && res.data.success) {
+      await fetchCart(); // Refresh cart
+      toast.success("Item removed from cart");
+    } else {
+      toast.error(res.data.error || "Failed to remove item");
     }
-  };
+  } catch (err) {
+    console.error("removeItem error:", err);
+    toast.error(err.response?.data?.error || "Failed to remove item");
+  }
+};
 
-  const updateQuantity = async (id: string, quantity: number) => {
-    if (!currentUser) return;
+const updateQuantity = async (id: string, quantity: number) => {
+  if (!currentUser) return;
 
-    if (quantity <= 0) {
-      removeItem(id);
-      return;
+  if (quantity <= 0) {
+    removeItem(id);
+    return;
+  }
+
+  try {
+    console.log("Updating quantity:", { user_id: currentUser.id, product_id: id, quantity });
+    const res = await axios.post(`${API_URL}?action=update`, {
+      user_id: currentUser.id,
+      product_id: id,
+      quantity: quantity
+    });
+
+    console.log("Update response:", res.data);
+    
+    if (res.data && res.data.success) {
+      await fetchCart(); // Refresh cart
+    } else {
+      toast.error(res.data.error || "Failed to update quantity");
     }
-
-    try {
-      const res = await axios.post(`${API_URL}?action=update`, {
-        user_id: currentUser.id,
-        product_id: id,
-        quantity: quantity
-      });
-
-      if (res.data && res.data.success) {
-        await fetchCart(); // Refresh cart
-      } else {
-        toast.error(res.data.error || "Failed to update quantity");
-      }
-    } catch (err) {
-      console.error("updateQuantity error:", err);
-      toast.error(err.response?.data?.error || "Failed to update quantity");
-    }
-  };
+  } catch (err) {
+    console.error("updateQuantity error:", err);
+    toast.error(err.response?.data?.error || "Failed to update quantity");
+  }
+};
 
   const clearCart = async () => {
     if (!currentUser) return;

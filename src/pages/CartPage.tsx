@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import MainLayout from '../layouts/MainLayout';
@@ -7,7 +6,15 @@ import { Minus, Plus, Trash, ArrowLeft, ShoppingBag } from 'lucide-react';
 import gsap from 'gsap';
 
 const CartPage = () => {
-  const { items, removeItem, updateQuantity, totalItems, totalPrice } = useCart();
+  const { 
+    items, 
+    removeItem, 
+    updateQuantity, 
+    totalItems, 
+    totalPrice, 
+    loading 
+  } = useCart();
+  
   const cartHeaderRef = useRef<HTMLDivElement>(null);
   const cartItemsRef = useRef<HTMLDivElement>(null);
   const cartSummaryRef = useRef<HTMLDivElement>(null);
@@ -47,6 +54,19 @@ const CartPage = () => {
     }
   }, [items.length]);
 
+  if (loading) {
+    return (
+      <MainLayout>
+        <div className="container mx-auto px-6 pt-32 pb-16">
+          <div className="text-center py-12">
+            <h2 className="text-xl font-medium mb-3">Loading your cart...</h2>
+            <p className="text-gray-500">Please wait while we load your shopping cart.</p>
+          </div>
+        </div>
+      </MainLayout>
+    );
+  }
+
   return (
     <MainLayout>
       <div className="container mx-auto px-6 pt-32 pb-16">
@@ -84,7 +104,7 @@ const CartPage = () => {
                   >
                     <div className="w-full sm:w-24 h-32 bg-gray-50 flex-shrink-0">
                       <img 
-                        src={item.image} 
+                        src={`https://zichael.com${item.image}`} 
                         alt={item.name} 
                         className="w-full h-full object-cover object-center"
                       />
@@ -105,13 +125,14 @@ const CartPage = () => {
                       </div>
                       
                       <p className="text-sm text-gray-500 mb-2">{item.category}</p>
-                      <div className="text-sm mb-4">${item.price.toFixed(2)}</div>
+                      <div className="text-sm mb-4">₦{item.price.toFixed(2)}</div>
                       
                       <div className="mt-auto flex justify-between items-center">
                         <div className="flex items-center border border-gray-300 w-24">
                           <button 
                             className="px-2 py-1" 
                             onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                            disabled={item.quantity <= 1}
                           >
                             <Minus size={14} />
                           </button>
