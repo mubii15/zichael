@@ -81,24 +81,24 @@ const App = () => (
               
               {/* Admin Routes - Also Protected */}
               <Route path="/admin" element={
-                <ProtectedRoute>
+               
                   <AdminDashboard />
-                </ProtectedRoute>
+                
               } />
               <Route path="/admin/users" element={
-                <ProtectedRoute>
+               
                   <AdminUsers />
-                </ProtectedRoute>
+              
               } />
               <Route path="/admin/products" element={
-                <ProtectedRoute>
+               
                   <AdminProducts />
-                </ProtectedRoute>
+               
               } />
               <Route path="/admin/orders" element={
-                <ProtectedRoute>
+                
                   <AdminOrders />
-                </ProtectedRoute>
+                
               } />
               
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
