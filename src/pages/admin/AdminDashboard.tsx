@@ -1,10 +1,25 @@
 
 import React from 'react';
 import MainLayout from '../../layouts/MainLayout';
-import { Link } from 'react-router-dom';
-import { Users, ShoppingBag, Package } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Users, ShoppingBag, Package, LogOut } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useAdminAuth } from '@/context/AdminAuthContext';
+import { useToast } from '@/hooks/use-toast';
 
 const AdminDashboard = () => {
+  const { logoutAdmin } = useAdminAuth();
+  const { toast } = useToast();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logoutAdmin();
+    toast({
+      title: "Logged out",
+      description: "You have been logged out successfully",
+    });
+    navigate('/');
+  };
   const adminFeatures = [
     {
       title: 'User Management',
@@ -30,7 +45,17 @@ const AdminDashboard = () => {
     <MainLayout>
       <div className="pt-28 pb-16 px-6">
         <div className="max-w-screen-xl mx-auto">
-          <h1 className="text-4xl md:text-5xl font-serif mb-12">Admin Dashboard</h1>
+          <div className="flex justify-between items-center mb-12">
+            <h1 className="text-4xl md:text-5xl font-serif">Admin Dashboard</h1>
+            <Button 
+              onClick={handleLogout}
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              <LogOut className="w-4 h-4" />
+              Logout
+            </Button>
+          </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {adminFeatures.map((feature, index) => (

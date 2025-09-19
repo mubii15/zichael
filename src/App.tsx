@@ -11,7 +11,8 @@ import ProductDetails from "./pages/ProductDetails";
 import CartPage from "./pages/CartPage";
 import { CartProvider } from "./context/CartContext";
 import { AuthProvider } from "./context/AuthContext";
-import AboutPage from "./pages/AboutPage"; 
+import { AdminAuthProvider } from "./context/AdminAuthContext";
+import AboutPage from "./pages/AboutPage";
 import ContactPage from "./pages/ContactPage";
 import ShippingPage from "./pages/ShippingPage";
 import ProductsPage from "./pages/ProductsPage";
@@ -24,6 +25,7 @@ import CheckoutPage from "./pages/checkout/CheckoutPage";
 import ConfirmOrderPage from "./pages/checkout/ConfirmOrderPage";
 import OrderSuccessPage from "./pages/checkout/OrderSuccessPage";
 import ProtectedRoute from "./components/ProtectedRoute";
+import AdminProtectedRoute from "./components/AdminProtectedRoute";
 import CategoryRedirect from "./components/CategoryRedirect";
 
 const queryClient = new QueryClient();
@@ -35,7 +37,8 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <CartProvider>
+          <AdminAuthProvider>
+            <CartProvider>
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/login" element={<LoginPage />} />
@@ -79,32 +82,33 @@ const App = () => (
               <Route path="/contact" element={<ContactPage />} />
               <Route path="/shipping" element={<ShippingPage />} />
               
-              {/* Admin Routes - Also Protected */}
+              {/* Admin Routes - Protected with Admin Auth */}
               <Route path="/admin" element={
-               
+                <AdminProtectedRoute>
                   <AdminDashboard />
-                
+                </AdminProtectedRoute>
               } />
               <Route path="/admin/users" element={
-               
+                <AdminProtectedRoute>
                   <AdminUsers />
-              
+                </AdminProtectedRoute>
               } />
               <Route path="/admin/products" element={
-               
+                <AdminProtectedRoute>
                   <AdminProducts />
-               
+                </AdminProtectedRoute>
               } />
               <Route path="/admin/orders" element={
-                
+                <AdminProtectedRoute>
                   <AdminOrders />
-                
+                </AdminProtectedRoute>
               } />
               
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
-          </CartProvider>
+            </CartProvider>
+          </AdminAuthProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
