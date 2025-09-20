@@ -217,8 +217,9 @@ const FeaturedProducts = () => {
                     <ProductCard 
                       id={product.id}
                       name={product.name}
+                      type={product.type}
                       price={product.price as number}
-                     image={`https://zichael.com${image}`}
+                      image={`https://zichael.com${image}`}
                       hoverImage={`https://zichael.com${hoverImage}`}
                       category={product.category}
                     />

@@ -11,6 +11,7 @@ interface ProductCardProps {
   image: string;
   hoverImage?: string;
   category: string;
+  type?: string; // Add type to props
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({ 
@@ -19,7 +20,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
   price, 
   image, 
   hoverImage,
-  category 
+  category,
+  type = 'ready-to-wear' // Default to ready-to-wear
 }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [currentImage, setCurrentImage] = useState(image);
@@ -34,11 +36,13 @@ const ProductCard: React.FC<ProductCardProps> = ({
   };
 
   // 👉 format price with commas
-  const formattedPrice = new Intl.NumberFormat('en-NG', {
-    style: 'currency',
-    currency: 'NGN',
-    minimumFractionDigits: 2
-  }).format(price);
+  const formatPrice = (price: number): string => {
+    return new Intl.NumberFormat('en-NG', {
+      style: 'currency',
+      currency: 'NGN',
+      maximumFractionDigits: 0
+    }).format(price).replace('NGN', '₦');
+  };
 
   const handleMouseEnter = () => {
     setIsHovered(true);
@@ -65,8 +69,14 @@ const ProductCard: React.FC<ProductCardProps> = ({
     e.preventDefault();
     e.stopPropagation();
     
-    addItem({ id, name, price, image, category });
-    toast.success(`${name} added to cart`);
+    // Only add to cart if it's a ready-to-wear product
+    if (type === 'ready-to-wear') {
+      addItem({ id, name, price, image, category, quantity: 1 });
+      toast.success(`${name} added to cart`);
+    } else {
+      // For bespoke products, just link to the product page
+      // The actual navigation is handled by the parent Link
+    }
   };
 
   return (
@@ -85,18 +95,39 @@ const ProductCard: React.FC<ProductCardProps> = ({
             onError={handleImageError}
           />
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-300"></div>
-          <button 
-            className="absolute bottom-0 left-0 right-0 bg-black text-white py-3 text-sm uppercase tracking-wider translate-y-full group-hover:translate-y-0 transition-transform duration-300"
-            onClick={handleAddToCart}
-          >
-            Add to Cart
-          </button>
+          
+          {/* Show different button based on product type */}
+          {type === 'ready-to-wear' ? (
+            <button 
+              className="absolute bottom-0 left-0 right-0 bg-black text-white py-3 text-sm uppercase tracking-wider translate-y-full group-hover:translate-y-0 transition-transform duration-300"
+              onClick={handleAddToCart}
+            >
+              Add to Cart
+            </button>
+          ) : (
+            <div className="absolute bottom-0 left-0 right-0 bg-green-600 text-white py-3 text-sm uppercase tracking-wider translate-y-full group-hover:translate-y-0 transition-transform duration-300 text-center">
+              Bespoke
+            </div>
+          )}
         </div>
         
         <div className="text-left">
-          <p className="text-sm text-gray-500 mb-1">{toSentenceCase(category)}</p>
+          <div className="flex justify-between items-start mb-1">
+            <p className="text-sm text-gray-500">{toSentenceCase(category)}</p>
+            {type === 'bespoke' && (
+              <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+                Bespoke
+              </span>
+            )}
+          </div>
           <h3 className="font-medium text-lg mb-1">{toSentenceCase(name)}</h3>
-          <p className="text-sm">{formattedPrice}</p>
+          
+          {/* Show price only for ready-to-wear products */}
+          {type === 'ready-to-wear' ? (
+            <p className="text-sm">{formatPrice(price)}</p>
+          ) : (
+            <p className="text-sm text-gray-600">Price on request</p>
+          )}
         </div>
       </Link>
     </div>

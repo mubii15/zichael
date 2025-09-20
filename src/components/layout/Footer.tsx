@@ -81,14 +81,14 @@ const Footer = () => {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent className="bg-white shadow-lg border z-50">
                     <DropdownMenuItem>
-                      <Link to="/men" className="w-full">Men</Link>
+                      <Link to="https://www.instagram.com/zichaelmen/" className="w-full">Men</Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem>
-                      <Link to="/women" className="w-full">Women</Link>
+                      <Link to="https://www.instagram.com/zichaelwoman/" className="w-full">Women</Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem>
+                    {/* <DropdownMenuItem>
                       <Link to="/kids" className="w-full">Children</Link>
-                    </DropdownMenuItem>
+                    </DropdownMenuItem> */}
                   </DropdownMenuContent>
                 </DropdownMenu>
               </li>

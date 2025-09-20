@@ -146,7 +146,7 @@ const CartPage = () => {
                         </div>
                         
                         <div className="font-medium">
-                          ${(item.price * item.quantity).toFixed(2)}
+                          ₦{(item.price * item.quantity).toFixed(2)}
                         </div>
                       </div>
                     </div>
@@ -165,7 +165,7 @@ const CartPage = () => {
                 <div className="space-y-4 mb-6">
                   <div className="flex justify-between">
                     <span>Subtotal ({totalItems} items)</span>
-                    <span>${totalPrice.toFixed(2)}</span>
+                    <span>₦{totalPrice.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Shipping</span>
@@ -173,14 +173,14 @@ const CartPage = () => {
                   </div>
                   <div className="flex justify-between">
                     <span>Tax</span>
-                    <span>${(totalPrice * 0.1).toFixed(2)}</span>
+                    <span>₦{(totalPrice * 0.1).toFixed(2)}</span>
                   </div>
                 </div>
                 
                 <div className="border-t border-gray-300 pt-4 mb-6">
                   <div className="flex justify-between font-medium text-lg">
                     <span>Total</span>
-                    <span>${(totalPrice * 1.1).toFixed(2)}</span>
+                    <span>₦{(totalPrice * 1.1).toFixed(2)}</span>
                   </div>
                 </div>
                 

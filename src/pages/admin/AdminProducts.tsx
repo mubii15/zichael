@@ -115,16 +115,23 @@ const AdminProducts = () => {
   };
 
   // Save product (create or update) - Multiple images version
-  // Save product (create or update) - Multiple images version
-// Save product (create or update) - Multiple images version
-const handleSaveProduct = async (productData: ProductData) => {
+  const handleSaveProduct = async (productData: ProductData) => {
   try {
     setSaving(true);
 
     const formData = new FormData();
     formData.append('name', productData.name);
     formData.append('description', productData.description);
-    formData.append('price', productData.price.toString());
+    
+    // Handle price for both ready-to-wear and bespoke products
+    if (productData.type === 'bespoke') {
+      // For bespoke products, send empty string for price
+      formData.append('price', '');
+    } else {
+      // For ready-to-wear products, send the actual price
+      formData.append('price', productData.price?.toString() || '0');
+    }
+    
     formData.append('category', productData.category);
     formData.append('type', productData.type);
     formData.append('inventory', (productData.inventory || 0).toString());

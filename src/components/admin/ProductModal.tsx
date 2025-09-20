@@ -22,7 +22,7 @@ export interface ProductData {
   id?: string;
   name: string;
   description: string;
-  price: number;
+  price: number | null; // Changed to allow null for bespoke products
   category: string;
   type: string;
   images: ProductImage[];
@@ -83,17 +83,50 @@ const ProductModal = ({ open, onClose, onSave, product, saving }: ProductModalPr
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: name === 'price' || name === 'inventory' ? parseFloat(value) || 0 : value
-    }));
+    
+    if (name === 'price') {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value === '' ? null : parseFloat(value) || 0
+      }));
+    } else if (name === 'inventory') {
+      setFormData(prev => ({
+        ...prev,
+        [name]: parseFloat(value) || 0
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
   };
 
   const handleSelectChange = (field: keyof ProductData, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    setFormData(prev => {
+      // If changing to bespoke, set price to null
+      if (field === 'type' && value === 'bespoke') {
+        return {
+          ...prev,
+          [field]: value,
+          price: null
+        };
+      }
+      
+      // If changing from bespoke to ready-to-wear, set price to 0
+      if (field === 'type' && value === 'ready-to-wear' && prev.price === null) {
+        return {
+          ...prev,
+          [field]: value,
+          price: 0
+        };
+      }
+      
+      return {
+        ...prev,
+        [field]: value
+      };
+    });
   };
 
   const handleSizeToggle = (size: string) => {
@@ -148,7 +181,12 @@ const ProductModal = ({ open, onClose, onSave, product, saving }: ProductModalPr
     
     if (!formData.name.trim()) newErrors.name = 'Product name is required';
     if (!formData.description.trim()) newErrors.description = 'Description is required';
-    if (formData.price <= 0) newErrors.price = 'Price must be greater than 0';
+    
+    // Only validate price for ready-to-wear products
+    if (formData.type === 'ready-to-wear' && (formData.price === null || formData.price <= 0)) {
+      newErrors.price = 'Price must be greater than 0';
+    }
+    
     if (!formData.category) newErrors.category = 'Category is required';
     if (!formData.type) newErrors.type = 'Product type is required';
     if (formData.images.length === 0) newErrors.images = 'At least one image is required';
@@ -211,21 +249,24 @@ const ProductModal = ({ open, onClose, onSave, product, saving }: ProductModalPr
             {errors.description && <p className="text-red-500 text-sm">{errors.description}</p>}
           </div>
           
-          <div className="grid gap-2">
-            <Label htmlFor="price">Price (₦)</Label>
-            <Input
-              id="price"
-              name="price"
-              type="number"
-              value={formData.price}
-              onChange={handleChange}
-              placeholder="0.00"
-              min="0"
-              step="0.01"
-              className={errors.price ? 'border-red-500' : ''}
-            />
-            {errors.price && <p className="text-red-500 text-sm">{errors.price}</p>}
-          </div>
+          {/* Only show price field for ready-to-wear products */}
+          {formData.type === 'ready-to-wear' && (
+            <div className="grid gap-2">
+              <Label htmlFor="price">Price (₦)</Label>
+              <Input
+                id="price"
+                name="price"
+                type="number"
+                value={formData.price === null ? '' : formData.price}
+                onChange={handleChange}
+                placeholder="0.00"
+                min="0"
+                step="0.01"
+                className={errors.price ? 'border-red-500' : ''}
+              />
+              {errors.price && <p className="text-red-500 text-sm">{errors.price}</p>}
+            </div>
+          )}
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="grid gap-2">
@@ -356,7 +397,7 @@ const ProductModal = ({ open, onClose, onSave, product, saving }: ProductModalPr
           </div>
         </div>
         
-      <DialogFooter>
+        <DialogFooter>
           <Button variant="outline" onClick={handleClose} disabled={saving}>
             Cancel
           </Button>
@@ -366,7 +407,6 @@ const ProductModal = ({ open, onClose, onSave, product, saving }: ProductModalPr
               : (product?.id ? 'Update Product' : 'Add Product')}
           </Button>
         </DialogFooter>
-
       </DialogContent>
     </Dialog>
   );

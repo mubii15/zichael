@@ -19,6 +19,15 @@ import 'swiper/css/free-mode';
 const API_URL = 'https://zichael.com/api/products.php';
 const WHATSAPP_NUMBER = '2348123456789'; // Replace with your actual WhatsApp number
 
+// Function to format price with commas
+const formatPrice = (price: number): string => {
+  return new Intl.NumberFormat('en-NG', {
+    style: 'currency',
+    currency: 'NGN',
+    maximumFractionDigits: 0
+  }).format(price).replace('NGN', '₦');
+};
+
 const ProductDetails = () => {
   const { productId } = useParams<{ productId: string }>();
   const [product, setProduct] = useState(null);
@@ -115,7 +124,7 @@ const ProductDetails = () => {
     if (!product) return;
     
     // Create WhatsApp message with product details
-    const message = `Hello! I'm interested in your bespoke product: ${product.name} (₦${Number(product.price).toFixed(2)}).`;
+    const message = `Hello! I'm interested in your bespoke product: ${product.name}.`;
     const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
     
     // Open WhatsApp in a new tab
@@ -234,7 +243,11 @@ const ProductDetails = () => {
             <div className="mb-6">
               <p className="text-sm text-gray-500 mb-2 capitalize">{product.category}</p>
               <h1 className="text-3xl font-medium mb-3">{product.name}</h1>
-              <p className="text-xl">₦{Number(product.price).toFixed(2)}</p>
+              {product.type === 'ready-to-wear' ? (
+                <p className="text-xl">{formatPrice(Number(product.price))}</p>
+              ) : (
+                <p className="text-xl text-gray-600">Price on request</p>
+              )}
               <p className="text-sm text-gray-500 mt-1 capitalize">Type: {product.type}</p>
             </div>
 
